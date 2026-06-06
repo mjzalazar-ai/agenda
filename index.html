@@ -96,11 +96,47 @@
     .stats { grid-template-columns:repeat(2,1fr); }
     .grid2 { grid-template-columns:1fr; }
   }
+
+  /* Vista Kanban */
+  .view-toggle { display:flex; gap:3px; background:#ebebeb; border-radius:10px; padding:3px; margin-bottom:12px; }
+  .vbtn { flex:1; padding:7px; border:none; border-radius:8px; font-size:13px; cursor:pointer; background:transparent; color:#888; font-weight:500; }
+  .vbtn.active { background:#fff; color:#1a1a1a; box-shadow:0 1px 3px rgba(0,0,0,.12); font-weight:600; }
+  .kanban-board { display:none; gap:12px; overflow-x:auto; padding-bottom:14px; -webkit-overflow-scrolling:touch; }
+  .vista-kanban .table-wrap { display:none !important; }
+  .vista-kanban #cards { display:none !important; }
+  .vista-kanban .kanban-board { display:flex !important; }
+  .kcol { flex:0 0 272px; background:#f0f0ee; border-radius:12px; padding:10px; display:flex; flex-direction:column; max-height:68vh; }
+  .kcol-head { display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; margin-bottom:6px; border-bottom:2px solid transparent; }
+  .k-pend .kcol-head { border-color:#93c5fd; }
+  .k-curso .kcol-head { border-color:#fcd34d; }
+  .k-done .kcol-head { border-color:#6ee7b7; }
+  .kcol-title { font-weight:700; font-size:13px; }
+  .k-pend .kcol-title { color:#1e40af; }
+  .k-curso .kcol-title { color:#92400e; }
+  .k-done .kcol-title { color:#166534; }
+  .kcol-cnt { font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; }
+  .k-pend .kcol-cnt { background:#dbeafe; color:#1e40af; }
+  .k-curso .kcol-cnt { background:#fef3c7; color:#92400e; }
+  .k-done .kcol-cnt { background:#dcfce7; color:#166534; }
+  .kcol-cards { display:flex; flex-direction:column; gap:7px; overflow-y:auto; flex:1; }
+  .kcol.drag-over { background:#e8f0fe; outline:2px dashed #93c5fd; }
+  .kcol-empty { text-align:center; color:#bbb; font-size:12px; font-style:italic; padding:18px 8px; }
+  .kcard { background:#fff; border:1px solid #e5e5e5; border-radius:9px; padding:9px 11px; cursor:grab; }
+  .kcard:active { cursor:grabbing; }
+  .kcard.dragging { opacity:.35; }
+  .kcard.k-venc { border-left:3px solid #f87171; }
+  .kcard-name { font-weight:600; font-size:13px; margin-bottom:4px; }
+  .kcard-tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
+  .kcard-foot { display:flex; justify-content:space-between; align-items:center; gap:6px; border-top:1px solid #f0f0f0; padding-top:6px; margin-top:2px; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>📋 Agenda Personal</h1>
+  <div class="view-toggle">
+    <button class="vbtn active" data-v="lista" onclick="setVista('lista')">📋 Lista</button>
+    <button class="vbtn" data-v="kanban" onclick="setVista('kanban')">🗂 Kanban</button>
+  </div>
   <div class="stats" id="stats"></div>
 
   <div class="toolbar">
@@ -158,6 +194,9 @@
 
   <!-- Cards (mobile) -->
   <div class="cards" id="cards"></div>
+
+  <!-- Kanban board -->
+  <div class="kanban-board" id="kanbanBoard"></div>
 </div>
 
 <script>
@@ -172,7 +211,7 @@ function guardarLS() {
 }
 
 let {tareas,nextId} = cargar();
-let editId=null, confirmId=null, sortCol=null, sortDir=1;
+let editId=null, confirmId=null, sortCol=null, sortDir=1, vistaActual='lista', dragId=null;
 
 const hoy = () => new Date().toISOString().slice(0,10);
 
@@ -237,7 +276,82 @@ function actualizarFiltroResp(){
     +nombres.map(n=>`<option value="${esc(n)}"${actual===n?" selected":""}>${esc(n)}</option>`).join("");
 }
 
-function render(){ guardarLS(); renderStats(); actualizarFiltroResp(); renderLista(); }
+function render(){ guardarLS(); renderStats(); actualizarFiltroResp(); renderLista(); if(vistaActual==='kanban') renderKanban(); }
+
+function setVista(v){
+  vistaActual=v;
+  document.querySelectorAll('.vbtn').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+  document.querySelector('.container').classList.toggle('vista-kanban',v==='kanban');
+  if(v==='kanban') renderKanban();
+}
+
+function renderKanban(){
+  const lista=filtrar();
+  const pend=lista.filter(t=>['pendiente','vencido'].includes(estadoEfectivo(t)));
+  const curso=lista.filter(t=>estadoEfectivo(t)==='en-curso');
+  const done=lista.filter(t=>estadoEfectivo(t)==='completado');
+  const board=document.getElementById('kanbanBoard');
+  board.innerHTML=kCol('pendiente','k-pend','Pendiente',pend)+kCol('en-curso','k-curso','En curso',curso)+kCol('completado','k-done','Completado',done);
+  board.querySelectorAll('.kcard').forEach(card=>{
+    card.addEventListener('dragstart',e=>{
+      dragId=parseInt(card.dataset.id);
+      setTimeout(()=>card.classList.add('dragging'),0);
+      e.dataTransfer.effectAllowed='move';
+    });
+    card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+  });
+  board.querySelectorAll('.kcol').forEach(col=>{
+    col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});
+    col.addEventListener('dragleave',e=>{if(!col.contains(e.relatedTarget))col.classList.remove('drag-over');});
+    col.addEventListener('drop',e=>{
+      e.preventDefault();col.classList.remove('drag-over');
+      if(dragId==null)return;
+      const nuevoEstado=col.dataset.estado;
+      const t=tareas.find(x=>x.id===dragId);
+      if(!t){dragId=null;return;}
+      if(t.recur&&nuevoEstado==='completado') avanzar(t);
+      else if(!t.recur) t.estado=nuevoEstado;
+      dragId=null; render();
+    });
+  });
+}
+
+function kCol(estado,cls,titulo,items){
+  return`<div class="kcol ${cls}" data-estado="${estado}">
+    <div class="kcol-head"><span class="kcol-title">${titulo}</span><span class="kcol-cnt">${items.length}</span></div>
+    <div class="kcol-cards">${items.length?items.map(t=>kCard(t)).join(''):'<div class="kcol-empty">Sin tareas</div>'}</div>
+  </div>`;
+}
+
+function kCard(t){
+  const ef=estadoEfectivo(t);
+  const mover=!t.recur
+    ?`<select onchange="cambiarEstado(${t.id},this.value)" style="font-size:11px;padding:3px 5px;border:1px solid #ddd;border-radius:6px;background:#fff;max-width:84px">
+        <option value="" disabled selected>Mover...</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="en-curso">En curso</option>
+        <option value="completado">Completado</option>
+       </select>`
+    :`<button class="btn icon" style="color:#166534;font-size:13px;padding:2px 6px" onclick="completarRecur(${t.id})" title="Avanzar ciclo">✓</button>`;
+  return`<div class="kcard${ef==='vencido'?' k-venc':''}" draggable="true" data-id="${t.id}">
+    <div class="kcard-name">${esc(t.nombre)}</div>
+    ${t.desc?`<div style="font-size:11px;color:#888;margin-bottom:5px">${esc(t.desc)}</div>`:''}
+    <div class="kcard-tags">
+      ${tagHtml(t.imp,t.imp.charAt(0).toUpperCase()+t.imp.slice(1))}
+      ${ef==='vencido'?tagHtml('vencido','Vencido'):''}
+      ${t.recur?tagHtml('recur',t.recur.charAt(0).toUpperCase()+t.recur.slice(1)):''}
+    </div>
+    <div class="kcard-foot">
+      <div>${fechaHtml(t)}</div>
+      <div style="display:flex;gap:3px;align-items:center">
+        ${mover}
+        ${t.resp?`<div class="avatar" title="${esc(t.resp)}">${iniciales(t.resp)}</div>`:''}
+        <button class="btn icon" onclick="abrirEditar(${t.id})" title="Editar">✎</button>
+        <button class="btn icon red" onclick="if(confirm('¿Eliminar?'))eliminar(${t.id})" title="Eliminar">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
 
 function renderStats(){
   const tot=tareas.length, pend=tareas.filter(t=>estadoEfectivo(t)==="pendiente").length,
