@@ -131,6 +131,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 #toast{position:fixed;bottom:calc(80px + var(--safeB));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;font-size:13px;padding:8px 18px;border-radius:20px;z-index:400;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 #toast.on{opacity:1;}
 
+/* Trip search */
+.trip-toggle{display:flex;background:var(--bg);border-radius:9px;padding:3px;margin-bottom:14px;border:1px solid var(--border);}
+.trip-toggle button{flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--t3);transition:.15s;}
+.trip-toggle button.active{background:var(--card);color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.viajes-form{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
+.site-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.site-card-l{display:flex;align-items:center;gap:10px;min-width:0;}
+.site-icon{font-size:22px;flex-shrink:0;}
+.site-name{font-size:14px;font-weight:600;}
+.site-desc{font-size:11px;color:var(--t3);margin-top:1px;}
+.site-btn{border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#fff;white-space:nowrap;flex-shrink:0;}
+.site-btn:active{opacity:.8;}
+.trip-summary{background:linear-gradient(135deg,#007aff,#5856d6);border-radius:var(--r);padding:16px;margin-bottom:14px;color:#fff;}
+
 @media(min-width:480px){
   .agrid{grid-template-columns:repeat(4,1fr);}
   #msheet{max-width:480px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);border-radius:20px;bottom:20px;}
@@ -163,6 +177,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
     <div class="view" id="view-prox"><div class="vcont" id="c-prox"></div></div>
     <div class="view" id="view-config"><div class="vcont" id="c-config"></div></div>
     <div class="view" id="view-search"><div class="vcont" id="c-search"></div></div>
+    <div class="view" id="view-viajes"><div class="vcont" id="c-viajes"></div></div>
   </div>
 
   <button id="fab" onclick="abrirModal()">+</button>
@@ -176,6 +191,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
     </button>
     <button class="ntab" data-t="prox" onclick="setTab('prox')">
       <span class="ni">📅</span><span class="nl">Próximas</span>
+    </button>
+    <button class="ntab" data-t="viajes" onclick="setTab('viajes')">
+      <span class="ni">✈️</span><span class="nl">Viajes</span>
     </button>
   </nav>
 
@@ -281,7 +299,7 @@ function setTab(tab){
   tabAct=tab;
   document.querySelectorAll('.ntab').forEach(b=>b.classList.toggle('active',b.dataset.t===tab));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab));
-  const titles={hoy:fmtHoy(),areas:'Mis Áreas',prox:'Próximas',config:'Ajustes',search:'Búsqueda'};
+  const titles={hoy:fmtHoy(),areas:'Mis Áreas',prox:'Próximas',config:'Ajustes',search:'Búsqueda',viajes:'Buscar Viajes'};
   document.getElementById('hdrDay').textContent=titles[tab]||tab;
   renderTab(tab);
 }
@@ -299,6 +317,7 @@ function renderTab(tab){
   else if(tab==='prox')rProx();
   else if(tab==='config')rConfig();
   else if(tab==='search')rSearch();
+  else if(tab==='viajes')rViajes();
 }
 
 // HOY
@@ -805,6 +824,206 @@ function guardarApiKey(procesarDespues=false){
 function borrarApiKey(){
   localStorage.removeItem('anthropic_key');
   cerrarModal();rConfig();toast('🗑 API Key eliminada');
+}
+
+// ── VIAJES ────────────────────────────────────────────────────────────────────
+let tripData=null, idaVuelta=true;
+
+function rViajes(){
+  document.getElementById('c-viajes').innerHTML=buildViajesForm();
+  if(!idaVuelta)document.getElementById('wFechaVuelta').style.display='none';
+}
+
+function buildViajesForm(){
+  return`
+    <div class="slbl">Tipo de viaje</div>
+    <div class="trip-toggle">
+      <button id="btnIV" class="${idaVuelta?'active':''}" onclick="setTripType(true)">⇄ Ida y vuelta</button>
+      <button id="btnSI" class="${!idaVuelta?'active':''}" onclick="setTripType(false)">→ Solo ida</button>
+    </div>
+    <div class="viajes-form">
+      <div class="sfield"><label>Origen</label>
+        <input id="tOrigen" placeholder="Ciudad o aeropuerto de origen" value="${esc(tripData?.origen||'')}">
+      </div>
+      <div class="sfield"><label>Destino</label>
+        <input id="tDestino" placeholder="Ciudad o aeropuerto de destino" value="${esc(tripData?.destino||'')}">
+      </div>
+      <div class="frow">
+        <div class="sfield"><label>Fecha de ida</label>
+          <input type="date" id="tFechaIda" value="${tripData?.fechaIda||''}">
+        </div>
+        <div class="sfield" id="wFechaVuelta"><label>Fecha de vuelta</label>
+          <input type="date" id="tFechaVuelta" value="${tripData?.fechaVuelta||''}">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="sfield"><label>Pasajeros</label>
+          <select id="tPax">
+            ${[1,2,3,4,5,6].map(n=>`<option value="${n}"${(tripData?.pax||'1')===String(n)?' selected':''}>${n} adulto${n>1?'s':''}</option>`).join('')}
+          </select>
+        </div>
+        <div class="sfield"><label>Clase</label>
+          <select id="tClase">
+            <option value="economy"${(!tripData?.clase||tripData?.clase==='economy')?' selected':''}>Económica</option>
+            <option value="premium_economy"${tripData?.clase==='premium_economy'?' selected':''}>Prem. Económica</option>
+            <option value="business"${tripData?.clase==='business'?' selected':''}>Ejecutiva</option>
+            <option value="first"${tripData?.clase==='first'?' selected':''}>Primera</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="sbtn p" style="width:100%;border-radius:12px" onclick="buscarViajes()">🔍 Comparar precios</button>
+    <div id="viajesResultados" style="margin-top:14px">${tripData?buildResultados(tripData):''}</div>`;
+}
+
+function setTripType(rt){
+  idaVuelta=rt;
+  document.getElementById('btnIV')?.classList.toggle('active',rt);
+  document.getElementById('btnSI')?.classList.toggle('active',!rt);
+  const w=document.getElementById('wFechaVuelta');
+  if(w)w.style.display=rt?'':'none';
+}
+
+function buscarViajes(){
+  const origen=document.getElementById('tOrigen')?.value.trim();
+  const destino=document.getElementById('tDestino')?.value.trim();
+  const fechaIda=document.getElementById('tFechaIda')?.value;
+  const fechaVuelta=idaVuelta?document.getElementById('tFechaVuelta')?.value:'';
+  const pax=document.getElementById('tPax')?.value||'1';
+  const clase=document.getElementById('tClase')?.value||'economy';
+  if(!origen||!destino){toast('⚠️ Ingresá origen y destino');return;}
+  if(!fechaIda){toast('⚠️ Ingresá la fecha de ida');return;}
+  if(idaVuelta&&!fechaVuelta){toast('⚠️ Ingresá la fecha de vuelta');return;}
+  tripData={origen,destino,fechaIda,fechaVuelta,pax,clase};
+  const res=document.getElementById('viajesResultados');
+  res.innerHTML=buildResultados(tripData);
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildResultados(d){
+  const claseLabel={economy:'Económica',premium_economy:'Prem. Económica',business:'Ejecutiva',first:'Primera'};
+  const ori=encodeURIComponent(d.origen), dest=encodeURIComponent(d.destino);
+  const oriS=d.origen.toLowerCase().replace(/\s+/g,'-'), destS=d.destino.toLowerCase().replace(/\s+/g,'-');
+  const fI=d.fechaIda, fV=d.fechaVuelta;
+  const fIShort=fI.replace(/-/g,''), fVShort=fV?fV.replace(/-/g,''):'';
+  const pax=d.pax, clase=d.clase;
+
+  const sites=[
+    {icon:'🌐',name:'Google Flights',desc:'Comparador de Google — el más completo',
+     url:`https://www.google.com/travel/flights?q=vuelos+de+${ori}+a+${dest}+${fI}`,
+     color:'#4285F4'},
+    {icon:'🛫',name:'Despegar',desc:'El más popular en América Latina',
+     url:`https://www.despegar.com/vuelos/resultado/1-${pax}-0-0-ES/${ori}/${dest}/${fI}${fV?'/'+fV:''}/`,
+     color:'#E8420A'},
+    {icon:'🔍',name:'Kayak',desc:'Compara cientos de sitios de viajes',
+     url:`https://www.kayak.com/flights/${ori}-${dest}/${fI}${fV?'/'+fV:''}/${pax}adults?cabin=${clase}`,
+     color:'#FF690F'},
+    {icon:'✈️',name:'Skyscanner',desc:'Búsqueda global de los mejores precios',
+     url:`https://www.skyscanner.com/transport/flights/${oriS}/${destS}/${fIShort}${fVShort?'/'+fVShort:''}/?adults=${pax}&cabinclass=${clase}`,
+     color:'#00A698'},
+    {icon:'🌍',name:'Momondo',desc:'Inspírate y encontrá deals únicos',
+     url:`https://www.momondo.com/flights/${ori}-${dest}/${fI}${fV?'/'+fV:''}?adults=${pax}&cabin=${clase[0]}`,
+     color:'#6A4C93'},
+  ];
+
+  const resumen=`${d.origen} → ${d.destino}${d.fechaVuelta?' (ida y vuelta)':' (solo ida)'}`;
+  const fechaStr=`${fmtF(d.fechaIda)}${d.fechaVuelta?' — '+fmtF(d.fechaVuelta):''}`;
+
+  let h=`<div class="trip-summary">
+    <div style="font-size:17px;font-weight:700;margin-bottom:4px">✈️ ${esc(resumen)}</div>
+    <div style="font-size:13px;opacity:.85">📅 ${fechaStr} · 👤 ${pax} pasajero${Number(pax)>1?'s':''} · ${esc(claseLabel[clase]||'Económica')}</div>
+  </div>
+  <div class="slbl">Comparar precios en</div>`;
+
+  for(const s of sites){
+    h+=`<div class="site-card">
+      <div class="site-card-l">
+        <div class="site-icon">${s.icon}</div>
+        <div><div class="site-name">${s.name}</div><div class="site-desc">${s.desc}</div></div>
+      </div>
+      <button class="site-btn" style="background:${s.color}" onclick="window.open(${JSON.stringify(s.url)},'_blank')">Ver →</button>
+    </div>`;
+  }
+
+  const hasKey=!!localStorage.getItem('anthropic_key');
+  h+=`<div class="slbl">Más opciones</div>`;
+  if(hasKey){
+    h+=`<div class="set-row" onclick="analizarViaje()"><span class="set-row-l">🤖 Analizar con IA</span><span class="set-row-r">Consejos y tips ›</span></div>`;
+  }
+  h+=`<div class="set-row" onclick="guardarViajeEnAgenda()"><span class="set-row-l">📅 Guardar en agenda</span><span class="set-row-r">Como evento ›</span></div>`;
+  if(!hasKey){
+    h+=`<div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Análisis con IA</span><span class="set-row-r">Configurar key ›</span></div>`;
+  }
+  h+=`<div style="height:10px"></div>`;
+  return h;
+}
+
+async function analizarViaje(){
+  const key=localStorage.getItem('anthropic_key');
+  if(!key||!tripData)return;
+  document.getElementById('mcon').innerHTML=`
+    <div style="text-align:center;padding:32px 16px">
+      <div style="font-size:44px;margin-bottom:12px">✈️</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando viaje…</div>
+      <div style="font-size:13px;color:var(--t3)">Buscando consejos para tu ruta</div>
+    </div>`;
+  showSheet();
+  try{
+    const d=tripData;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:600,
+        messages:[{role:'user',content:`Viaje de ${d.origen} a ${d.destino}. Ida: ${d.fechaIda}${d.fechaVuelta?', vuelta: '+d.fechaVuelta:' (solo ida)'}. ${d.pax} pasajero(s), clase ${d.clase}.
+
+Dame consejos breves y útiles en español usando viñetas •:
+• Aerolíneas principales en esta ruta
+• Mejor momento para comprar el boleto
+• Tips para conseguir el mejor precio
+• 1 tip práctico para el viaje
+
+Máximo 150 palabras, muy conciso.`}]
+      })
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Error ${res.status}`);}
+    const data=await res.json();
+    const txt=data.content[0].text;
+    const htmlTxt=esc(txt).replace(/\n/g,'<br>').replace(/•/g,'<span style="color:var(--blue);font-weight:700">•</span>');
+    document.getElementById('mcon').innerHTML=`
+      <div class="stitle">🤖 Consejos para tu viaje</div>
+      <div style="background:var(--bg);border-radius:var(--r);padding:14px;margin-bottom:14px;font-size:14px;line-height:1.7;color:var(--t2)">${htmlTxt}</div>
+      <div class="sbtns">
+        <button class="sbtn s" onclick="cerrarModal()">Cerrar</button>
+        <button class="sbtn p" onclick="cerrarModal();guardarViajeEnAgenda()">📅 Guardar viaje</button>
+      </div>`;
+  }catch(err){
+    document.getElementById('mcon').innerHTML=`
+      <div class="stitle">⚠️ Error</div>
+      <p style="color:var(--t3);font-size:14px;margin-bottom:16px">${esc(String(err.message))}</p>
+      <div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>`;
+  }
+}
+
+function guardarViajeEnAgenda(){
+  if(!tripData)return;
+  const d=tripData;
+  items.push({
+    id:nextId++,
+    titulo:`✈️ ${d.origen} → ${d.destino}`,
+    detalle:`${d.fechaVuelta?'Ida y vuelta':'Solo ida'} · ${d.pax} pasajero${Number(d.pax)>1?'s':''} · ${d.clase}`,
+    area:'eventos',prio:'alta',
+    fecha:d.fechaIda,hora:'',recur:'',dia:null,quien:'',estado:'pendiente',
+  });
+  guardar();
+  toast('✓ Viaje guardado como evento');
+  setTab('hoy');
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
