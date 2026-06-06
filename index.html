@@ -6,9 +6,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mi Agenda">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Mi Agenda</title>
 <style>
 :root {
@@ -21,8 +18,6 @@
 html,body{height:100%;overflow:hidden;background:var(--bg);}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--t1);font-size:15px;}
 #app{height:100%;display:flex;flex-direction:column;}
-
-/* Header */
 .hdr{padding:calc(var(--safeT) + 10px) 16px 8px;background:var(--bg);}
 .hdr-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;}
 .hdr-day{font-size:24px;font-weight:700;}
@@ -31,21 +26,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 .search-wrap{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;}
 .search-wrap input{flex:1;border:none;background:none;font-size:14px;color:var(--t1);outline:none;}
 .search-wrap input::placeholder{color:var(--t3);}
-
-/* Views */
 #views{flex:1;overflow:hidden;position:relative;}
 .view{position:absolute;top:0;right:0;bottom:0;left:0;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch;}
 .view.active{display:block;}
 .vcont{padding:10px 16px calc(90px + var(--safeB));}
-
-/* Section labels */
 .slbl{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 7px;}
-
-/* Task item */
-.ti{display:flex;align-items:flex-start;gap:10px;background:var(--card);border-radius:var(--r);padding:12px 12px;margin-bottom:8px;border:1px solid var(--border);}
+.ti{display:flex;align-items:flex-start;gap:10px;background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:8px;border:1px solid var(--border);}
 .ti-chk{width:23px;height:23px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
 .ti-chk.done{background:var(--green);border-color:var(--green);}
-.ti-chk.done::after{content:'✓';color:#fff;font-size:12px;font-weight:800;}
+.ti-chk.done::after{content:'\2713';color:#fff;font-size:12px;font-weight:800;}
 .ti-body{flex:1;min-width:0;}
 .ti-title{font-size:15px;font-weight:500;line-height:1.3;word-break:break-word;}
 .ti-title.struck{text-decoration:line-through;color:var(--t3);}
@@ -55,8 +44,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 .ib{background:none;border:none;cursor:pointer;padding:5px 6px;border-radius:7px;font-size:15px;color:var(--t3);}
 .ib:active{opacity:.5;}
 .ib.red{color:var(--red);}
-
-/* Tags */
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;}
 .tag-venc{background:#fee2e2;color:#991b1b;}
 .tag-alta{background:#fee2e2;color:#b91c1c;}
@@ -64,53 +51,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 .tag-hora{background:#f0fdf4;color:#166534;}
 .tag-quien{background:#f5f3ff;color:#6d28d9;}
 .tag-recur{background:#fdf4ff;color:#86198f;font-size:10px;}
-
-/* Areas grid */
 .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.acard{background:var(--card);border-radius:var(--r);padding:14px 8px 12px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:.1s;}
-.acard:active{opacity:.7;transform:scale(.97);}
+.acard{background:var(--card);border-radius:var(--r);padding:14px 8px 12px;text-align:center;border:1px solid var(--border);cursor:pointer;}
+.acard:active{opacity:.7;}
 .acard .ai{font-size:26px;margin-bottom:5px;}
 .acard .al{font-size:12px;font-weight:600;color:var(--t2);}
 .acard .ac{font-size:11px;color:var(--t3);margin-top:2px;min-height:15px;}
 .acard .ac.has{color:var(--blue);font-weight:600;}
-
-/* Area detail */
 .area-hdr{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:var(--r);padding:14px;border:1px solid var(--border);margin-bottom:14px;}
 .area-hdr .ahi{font-size:34px;}
 .area-hdr-txt{flex:1;}
 .area-hdr-txt h2{font-size:19px;font-weight:700;}
 .area-hdr-txt p{font-size:13px;color:var(--t3);margin-top:1px;}
 .back-btn{display:flex;align-items:center;gap:3px;color:var(--blue);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;background:none;border:none;padding:3px 0;}
-
-/* Overdue banner */
 .ovb{background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;}
 .ovb-t{font-weight:700;color:#991b1b;font-size:14px;}
 .ovb-s{font-size:12px;color:#b91c1c;margin-top:2px;}
-
-/* Empty */
 .empty{text-align:center;color:var(--t3);padding:40px 16px;}
 .empty .ei{font-size:42px;margin-bottom:10px;}
-
-/* Date groups */
 .dgrp{margin-bottom:10px;}
 .dgrp-lbl{font-size:13px;font-weight:700;color:var(--t3);margin-bottom:6px;padding-left:2px;}
-
-/* FAB */
 #fab{position:fixed;bottom:calc(68px + var(--safeB));right:18px;width:54px;height:54px;border-radius:50%;background:var(--blue);color:#fff;font-size:26px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,122,255,.45);display:flex;align-items:center;justify-content:center;z-index:100;}
 #fab:active{transform:scale(.93);}
-
-/* Bottom nav */
-#nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);padding-bottom:var(--safeB);display:flex;z-index:50;}
+#nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding-bottom:var(--safeB);display:flex;z-index:50;}
 .ntab{flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;background:none;border:none;}
 .ntab .ni{font-size:22px;}
 .ntab .nl{font-size:10px;font-weight:500;color:var(--t3);}
 .ntab.active .nl{color:var(--blue);}
-
-/* Modal overlay + sheet */
 #moverlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.4);z-index:200;display:none;}
 #moverlay.on{display:block;}
-#msheet{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + var(--safeB));max-height:93vh;overflow-y:auto;z-index:201;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
-#msheet.on{transform:none;}
+#msheet{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + var(--safeB));max-height:93vh;overflow-y:auto;z-index:201;-webkit-transform:translateY(100%);transform:translateY(100%);-webkit-transition:-webkit-transform .28s;transition:transform .28s;}
+#msheet.on{-webkit-transform:none;transform:none;}
 .shandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;}
 .stitle{font-size:18px;font-weight:700;margin-bottom:14px;}
 .sfield{margin-bottom:13px;}
@@ -124,42 +95,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 .sbtn.p{background:var(--blue);color:#fff;}
 .sbtn.s{background:var(--bg);color:var(--t3);border:1px solid var(--border);}
 .sbtn:active{opacity:.8;}
-
-/* Settings */
 .set-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;}
 .set-row-l{font-size:15px;}
 .set-row-r{color:var(--t3);font-size:13px;}
-
-/* Toast */
-#toast{position:fixed;bottom:calc(80px + var(--safeB));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;font-size:13px;padding:8px 18px;border-radius:20px;z-index:400;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+#toast{position:fixed;bottom:calc(80px + var(--safeB));left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;font-size:13px;padding:8px 18px;border-radius:20px;z-index:400;opacity:0;-webkit-transition:opacity .2s;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 #toast.on{opacity:1;}
-
 @media(min-width:480px){
   .agrid{grid-template-columns:repeat(4,1fr);}
-  #msheet{max-width:480px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);border-radius:20px;bottom:20px;}
-  #msheet.on{transform:translateX(-50%) translateY(0);}
+  #msheet{max-width:480px;left:50%;right:auto;-webkit-transform:translateX(-50%) translateY(100%);transform:translateX(-50%) translateY(100%);border-radius:20px;bottom:20px;}
+  #msheet.on{-webkit-transform:translateX(-50%) translateY(0);transform:translateX(-50%) translateY(0);}
 }
 </style>
 </head>
 <body>
 <div id="app">
-
   <div class="hdr">
     <div class="hdr-top">
-      <div class="hdr-day" id="hdrDay">Hoy</div>
+      <div class="hdr-day" id="hdrDay">Cargando...</div>
       <div class="hdr-btns">
-        <button class="hdr-btn" onclick="document.getElementById('imgInput').click()" title="Subir imagen">📷</button>
-        <button class="hdr-btn" onclick="setTab('config')">⚙</button>
+        <button class="hdr-btn" onclick="document.getElementById('imgInput').click()">&#128247;</button>
+        <button class="hdr-btn" onclick="setTab('config')">&#9881;</button>
       </div>
       <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="procesarImagen(event)">
     </div>
     <div class="search-wrap">
-      <span style="color:var(--t3);font-size:14px">🔍</span>
+      <span style="color:var(--t3);font-size:14px">&#128269;</span>
       <input type="text" id="search" placeholder="Buscar en todo..." oninput="onSearch()">
-      <button class="ib" id="clrSearch" style="display:none;color:var(--t3)" onclick="clearSearch()">✕</button>
+      <button class="ib" id="clrSearch" style="display:none;color:var(--t3)" onclick="clearSearch()">&#10005;</button>
     </div>
   </div>
-
   <div id="views">
     <div class="view active" id="view-hoy"><div class="vcont" id="c-hoy"></div></div>
     <div class="view" id="view-areas"><div class="vcont" id="c-areas"></div></div>
@@ -167,31 +131,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
     <div class="view" id="view-config"><div class="vcont" id="c-config"></div></div>
     <div class="view" id="view-search"><div class="vcont" id="c-search"></div></div>
   </div>
-
   <button id="fab" onclick="abrirModal()">+</button>
-
   <nav id="nav">
     <button class="ntab active" data-t="hoy" onclick="setTab('hoy')">
-      <span class="ni">☀️</span><span class="nl">Hoy</span>
+      <span class="ni">&#9728;&#65039;</span><span class="nl">Hoy</span>
     </button>
     <button class="ntab" data-t="areas" onclick="setTab('areas')">
-      <span class="ni">🗂</span><span class="nl">Áreas</span>
+      <span class="ni">&#128194;</span><span class="nl">&#193;reas</span>
     </button>
     <button class="ntab" data-t="prox" onclick="setTab('prox')">
-      <span class="ni">📅</span><span class="nl">Próximas</span>
+      <span class="ni">&#128197;</span><span class="nl">Pr&#243;ximas</span>
     </button>
   </nav>
-
   <div id="moverlay" onclick="cerrarModal()"></div>
   <div id="msheet"><div class="shandle"></div><div id="mcon"></div></div>
   <div id="toast"></div>
 </div>
-
 <script>
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const SK = 'miagenda_v2';
-
-const AREAS = [
+var SK = 'miagenda_v2';
+var AREAS = [
   {id:'colegio',   i:'🏫', l:'Colegio',    bg:'#e0f2fe', fg:'#0369a1'},
   {id:'hogar',     i:'🏠', l:'Hogar',      bg:'#fef3c7', fg:'#92400e'},
   {id:'compras',   i:'🛒', l:'Compras',    bg:'#dcfce7', fg:'#166534'},
@@ -203,639 +161,699 @@ const AREAS = [
   {id:'pendientes',i:'📋', l:'Pendientes', bg:'#f1f5f9', fg:'#475569'},
   {id:'tramites',  i:'📝', l:'Trámites',   bg:'#fff7ed', fg:'#c2410c'},
   {id:'eventos',   i:'📅', l:'Eventos',    bg:'#faf5ff', fg:'#7e22ce'},
-  {id:'gimnasio',  i:'🏋️', l:'Gimnasio',  bg:'#f0fdf4', fg:'#15803d'},
+  {id:'gimnasio',  i:'🏋️', l:'Gimnasio',  bg:'#f0fdf4', fg:'#15803d'}
 ];
-const AM = AREAS.reduce((o,a)=>{o[a.id]=a;return o;},{});
+var AM = {};
+for (var _i = 0; _i < AREAS.length; _i++) { AM[AREAS[_i].id] = AREAS[_i]; }
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
-function cargar(){
-  try{const d=localStorage.getItem(SK);if(d)return JSON.parse(d);}catch(e){}
-  return{items:[],nextId:1};
+function cargar() {
+  try { var d = localStorage.getItem(SK); if (d) return JSON.parse(d); } catch(e) {}
+  return {items:[], nextId:1};
 }
-function guardar(){try{localStorage.setItem(SK,JSON.stringify({items,nextId}));}catch(e){}}
+function guardar() { try { localStorage.setItem(SK, JSON.stringify({items:items, nextId:nextId})); } catch(e) {} }
 
-let {items,nextId}=cargar();
-let editId=null, tabAct='hoy', areaAct=null, searchQ='', vencOpen=false, pendingFile=null;
+var _data = cargar();
+var items = _data.items;
+var nextId = _data.nextId;
+var editId = null, tabAct = 'hoy', areaAct = null, searchQ = '', vencOpen = false, pendingFile = null;
 
-// ── UTILS ─────────────────────────────────────────────────────────────────────
-const hoy=()=>new Date().toISOString().slice(0,10);
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-function fmtF(f){
-  if(!f)return'';
-  const t=hoy();
-  const tom=new Date();tom.setDate(tom.getDate()+1);
-  const ts=tom.toISOString().slice(0,10);
-  if(f===t)return'Hoy';if(f===ts)return'Mañana';
-  const d=new Date(f+'T12:00:00');
-  const ds=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const ms=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const [y,m,dd]=f.split('-');
-  const diff=Math.round((d-new Date())/86400000);
-  if(diff>-8&&diff<15)return`${ds[d.getDay()]} ${dd}/${m}`;
-  return`${dd}/${m}/${String(y).slice(2)}`;
+function hoy() { return new Date().toISOString().slice(0,10); }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function isVenc(t){return t.fecha&&t.fecha<hoy()&&t.estado!=='completado';}
-
-function diasEnMes(y,m){return new Date(y,m+1,0).getDate();}
-
-function avanzar(t){
-  const f=new Date(t.fecha+'T00:00:00');
-  if(t.recur==='diaria')f.setDate(f.getDate()+1);
-  else if(t.recur==='semanal')f.setDate(f.getDate()+7);
-  else if(t.recur==='mensual'){f.setMonth(f.getMonth()+1);if(t.dia)f.setDate(Math.min(t.dia,diasEnMes(f.getFullYear(),f.getMonth())));}
-  else if(t.recur==='anual')f.setFullYear(f.getFullYear()+1);
-  t.fecha=f.toISOString().slice(0,10);t.estado='pendiente';
+function fmtF(f) {
+  if (!f) return '';
+  var t = hoy();
+  var tom = new Date(); tom.setDate(tom.getDate()+1);
+  var ts = tom.toISOString().slice(0,10);
+  if (f === t) return 'Hoy';
+  if (f === ts) return 'Mañana';
+  var d = new Date(f + 'T12:00:00');
+  var ds = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var parts = f.split('-');
+  var y = parts[0], m = parts[1], dd = parts[2];
+  var diff = Math.round((d - new Date()) / 86400000);
+  if (diff > -8 && diff < 15) return ds[d.getDay()] + ' ' + dd + '/' + m;
+  return dd + '/' + m + '/' + String(y).slice(2);
 }
 
-// ── RENDER UTILS ──────────────────────────────────────────────────────────────
-function atag(id){
-  const a=AM[id];if(!a)return'';
-  return`<span class="tag" style="background:${a.bg};color:${a.fg}">${a.i} ${a.l}</span>`;
+function isVenc(t) { return t.fecha && t.fecha < hoy() && t.estado !== 'completado'; }
+function diasEnMes(y, m) { return new Date(y, m+1, 0).getDate(); }
+
+function avanzar(t) {
+  var f = new Date(t.fecha + 'T00:00:00');
+  if (t.recur === 'diaria') f.setDate(f.getDate()+1);
+  else if (t.recur === 'semanal') f.setDate(f.getDate()+7);
+  else if (t.recur === 'mensual') {
+    f.setMonth(f.getMonth()+1);
+    if (t.dia) f.setDate(Math.min(t.dia, diasEnMes(f.getFullYear(), f.getMonth())));
+  }
+  else if (t.recur === 'anual') f.setFullYear(f.getFullYear()+1);
+  t.fecha = f.toISOString().slice(0,10);
+  t.estado = 'pendiente';
 }
 
-function tiHtml(t,showArea=true){
-  const done=t.estado==='completado', venc=isVenc(t);
-  return`<div class="ti">
-    <div class="ti-chk${done?' done':''}" onclick="toggleDone(${t.id})"></div>
-    <div class="ti-body">
-      <div class="ti-title${done?' struck':''}">${esc(t.titulo)}</div>
-      <div class="ti-meta">
-        ${showArea?atag(t.area):''}
-        ${t.prio==='alta'?'<span class="tag tag-alta">❗Alta</span>':''}
-        ${t.hora?`<span class="tag tag-hora">⏰ ${t.hora}</span>`:''}
-        ${t.fecha&&!done?`<span class="tag ${venc?'tag-venc':'tag-fecha'}">${venc?'⚠️ ':''}${fmtF(t.fecha)}</span>`:''}
-        ${t.quien?`<span class="tag tag-quien">👤 ${esc(t.quien)}</span>`:''}
-        ${t.recur?`<span class="tag tag-recur">↻ ${t.recur}</span>`:''}
-      </div>
-      ${t.detalle?`<div class="ti-note">${esc(t.detalle)}</div>`:''}
-    </div>
-    <div class="ti-acts">
-      <button class="ib" onclick="abrirEditar(${t.id})" title="Editar">✎</button>
-      <button class="ib red" onclick="pedirEliminar(${t.id})" title="Eliminar">✕</button>
-    </div>
-  </div>`;
+function atag(id) {
+  var a = AM[id]; if (!a) return '';
+  return '<span class="tag" style="background:' + a.bg + ';color:' + a.fg + '">' + a.i + ' ' + a.l + '</span>';
 }
 
-// ── VIEWS ─────────────────────────────────────────────────────────────────────
-function setTab(tab){
-  if(tab!=='areas')areaAct=null;
-  tabAct=tab;
-  document.querySelectorAll('.ntab').forEach(b=>b.classList.toggle('active',b.dataset.t===tab));
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab));
-  const titles={hoy:fmtHoy(),areas:'Mis Áreas',prox:'Próximas',config:'Ajustes',search:'Búsqueda'};
-  document.getElementById('hdrDay').textContent=titles[tab]||tab;
+function tiHtml(t, showArea) {
+  if (showArea === undefined) showArea = true;
+  var done = t.estado === 'completado';
+  var venc = isVenc(t);
+  var h = '<div class="ti">';
+  h += '<div class="ti-chk' + (done ? ' done' : '') + '" onclick="toggleDone(' + t.id + ')"></div>';
+  h += '<div class="ti-body">';
+  h += '<div class="ti-title' + (done ? ' struck' : '') + '">' + esc(t.titulo) + '</div>';
+  h += '<div class="ti-meta">';
+  if (showArea) h += atag(t.area);
+  if (t.prio === 'alta') h += '<span class="tag tag-alta">❗Alta</span>';
+  if (t.hora) h += '<span class="tag tag-hora">⏰ ' + t.hora + '</span>';
+  if (t.fecha && !done) h += '<span class="tag ' + (venc ? 'tag-venc' : 'tag-fecha') + '">' + (venc ? '⚠️ ' : '') + fmtF(t.fecha) + '</span>';
+  if (t.quien) h += '<span class="tag tag-quien">👤 ' + esc(t.quien) + '</span>';
+  if (t.recur) h += '<span class="tag tag-recur">↻ ' + t.recur + '</span>';
+  h += '</div>';
+  if (t.detalle) h += '<div class="ti-note">' + esc(t.detalle) + '</div>';
+  h += '</div>';
+  h += '<div class="ti-acts">';
+  h += '<button class="ib" onclick="abrirEditar(' + t.id + ')" title="Editar">✎</button>';
+  h += '<button class="ib red" onclick="pedirEliminar(' + t.id + ')" title="Eliminar">✕</button>';
+  h += '</div></div>';
+  return h;
+}
+
+function fmtHoy() {
+  var d = new Date();
+  var ds = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var ms = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return ds[d.getDay()] + ' ' + d.getDate() + ' de ' + ms[d.getMonth()];
+}
+
+function setTab(tab) {
+  if (tab !== 'areas') areaAct = null;
+  tabAct = tab;
+  var tabs = document.querySelectorAll('.ntab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList[tabs[i].dataset.t === tab ? 'add' : 'remove']('active');
+  }
+  var views = document.querySelectorAll('.view');
+  for (var i = 0; i < views.length; i++) {
+    views[i].classList[views[i].id === 'view-' + tab ? 'add' : 'remove']('active');
+  }
+  var titles = {hoy:fmtHoy(), areas:'Mis Áreas', prox:'Próximas', config:'Ajustes', search:'Búsqueda'};
+  document.getElementById('hdrDay').textContent = titles[tab] || tab;
   renderTab(tab);
 }
 
-function fmtHoy(){
-  const d=new Date();
-  const ds=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  return`${ds[d.getDay()]} ${d.getDate()} de ${ms[d.getMonth()]}`;
+function renderTab(tab) {
+  if (tab === 'hoy') rHoy();
+  else if (tab === 'areas') { if (areaAct) rAreaDet(); else rAreas(); }
+  else if (tab === 'prox') rProx();
+  else if (tab === 'config') rConfig();
+  else if (tab === 'search') rSearch();
 }
 
-function renderTab(tab){
-  if(tab==='hoy')rHoy();
-  else if(tab==='areas')areaAct?rAreaDet():rAreas();
-  else if(tab==='prox')rProx();
-  else if(tab==='config')rConfig();
-  else if(tab==='search')rSearch();
-}
+function rHoy() {
+  var h = hoy();
+  var hoyT = items.filter(function(t){ return t.fecha === h && t.estado !== 'completado'; });
+  hoyT.sort(function(a,b){ return (a.hora||'23:59') < (b.hora||'23:59') ? -1 : 1; });
+  var venc = items.filter(function(t){ return isVenc(t); });
+  var altas = items.filter(function(t){ return !t.fecha && t.estado === 'pendiente' && t.prio === 'alta'; }).slice(0,6);
+  var manT = new Date(); manT.setDate(manT.getDate()+1);
+  var manS = manT.toISOString().slice(0,10);
+  var man = items.filter(function(t){ return t.fecha === manS && t.estado !== 'completado'; });
+  man.sort(function(a,b){ return (a.hora||'23:59') < (b.hora||'23:59') ? -1 : 1; });
 
-// HOY
-function rHoy(){
-  const h=hoy();
-  const hoyT=items.filter(t=>t.fecha===h&&t.estado!=='completado').sort((a,b)=>(a.hora||'23:59').localeCompare(b.hora||'23:59'));
-  const venc=items.filter(t=>isVenc(t));
-  const altas=items.filter(t=>!t.fecha&&t.estado==='pendiente'&&t.prio==='alta').slice(0,6);
-  const manT=new Date();manT.setDate(manT.getDate()+1);
-  const manS=manT.toISOString().slice(0,10);
-  const man=items.filter(t=>t.fecha===manS&&t.estado!=='completado').sort((a,b)=>(a.hora||'23:59').localeCompare(b.hora||'23:59'));
+  var h2 = '';
 
-  let h2='';
-
-  if(venc.length){
-    h2+=`<div class="ovb" onclick="toggleVenc()">
-      <div class="ovb-t">⚠️ ${venc.length} vencida${venc.length>1?'s':''}</div>
-      <div class="ovb-s" id="vencSub">${vencOpen?'Tocá para ocultar':'Tocá para ver'}</div>
-    </div>
-    <div id="vencList" style="display:${vencOpen?'block':'none'}">${venc.map(t=>tiHtml(t)).join('')}</div>`;
+  if (venc.length) {
+    h2 += '<div class="ovb" onclick="toggleVenc()">';
+    h2 += '<div class="ovb-t">⚠️ ' + venc.length + ' vencida' + (venc.length > 1 ? 's' : '') + '</div>';
+    h2 += '<div class="ovb-s" id="vencSub">' + (vencOpen ? 'Tocá para ocultar' : 'Tocá para ver') + '</div>';
+    h2 += '</div>';
+    h2 += '<div id="vencList" style="display:' + (vencOpen ? 'block' : 'none') + '">';
+    for (var i = 0; i < venc.length; i++) h2 += tiHtml(venc[i]);
+    h2 += '</div>';
   }
 
-  if(!hoyT.length&&!venc.length&&!altas.length){
-    h2+=`<div class="empty"><div class="ei">🌟</div>¡Todo al día! No hay tareas para hoy.</div>`;
+  if (!hoyT.length && !venc.length && !altas.length) {
+    h2 += '<div class="empty"><div class="ei">🌟</div>¡Todo al día! No hay tareas para hoy.</div>';
   } else {
-    if(hoyT.length){
-      const rem=hoyT.filter(t=>t.area==='remedios');
-      const resto=hoyT.filter(t=>t.area!=='remedios');
-      if(rem.length){h2+=`<div class="slbl">💊 Remedios</div>`+rem.map(t=>tiHtml(t,false)).join('');}
-      if(resto.length){h2+=`<div class="slbl">📋 Para hoy (${resto.length})</div>`+resto.map(t=>tiHtml(t)).join('');}
+    var rem = hoyT.filter(function(t){ return t.area === 'remedios'; });
+    var resto = hoyT.filter(function(t){ return t.area !== 'remedios'; });
+    if (rem.length) {
+      h2 += '<div class="slbl">💊 Remedios</div>';
+      for (var i = 0; i < rem.length; i++) h2 += tiHtml(rem[i], false);
     }
-    if(altas.length){
-      h2+=`<div class="slbl">❗ Alta prioridad sin fecha</div>`+altas.map(t=>tiHtml(t)).join('');
+    if (resto.length) {
+      h2 += '<div class="slbl">📋 Para hoy (' + resto.length + ')</div>';
+      for (var i = 0; i < resto.length; i++) h2 += tiHtml(resto[i]);
+    }
+    if (altas.length) {
+      h2 += '<div class="slbl">❗ Alta prioridad sin fecha</div>';
+      for (var i = 0; i < altas.length; i++) h2 += tiHtml(altas[i]);
     }
   }
 
-  if(man.length){
-    h2+=`<div class="slbl">Mañana (${man.length})</div>`+man.map(t=>tiHtml(t)).join('');
+  if (man.length) {
+    h2 += '<div class="slbl">Mañana (' + man.length + ')</div>';
+    for (var i = 0; i < man.length; i++) h2 += tiHtml(man[i]);
   }
 
-  // Quick summary by area
-  const pendByArea=AREAS.map(a=>({a,n:items.filter(t=>t.area===a.id&&t.estado!=='completado').length})).filter(x=>x.n>0);
-  if(pendByArea.length){
-    h2+=`<div class="slbl">Resumen por área</div><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px">`;
-    for(const {a,n} of pendByArea){
-      h2+=`<span class="tag" style="background:${a.bg};color:${a.fg};cursor:pointer;padding:4px 10px;font-size:12px" onclick="irArea('${a.id}')">${a.i} ${a.l} <b>${n}</b></span>`;
+  var pendByArea = [];
+  for (var i = 0; i < AREAS.length; i++) {
+    var a = AREAS[i];
+    var n = items.filter(function(t){ return t.area === a.id && t.estado !== 'completado'; }).length;
+    if (n > 0) pendByArea.push({a:a, n:n});
+  }
+  if (pendByArea.length) {
+    h2 += '<div class="slbl">Resumen por área</div><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px">';
+    for (var i = 0; i < pendByArea.length; i++) {
+      var pa = pendByArea[i];
+      h2 += '<span class="tag" style="background:' + pa.a.bg + ';color:' + pa.a.fg + ';cursor:pointer;padding:4px 10px;font-size:12px" onclick="irArea(\'' + pa.a.id + '\')">' + pa.a.i + ' ' + pa.a.l + ' <b>' + pa.n + '</b></span>';
     }
-    h2+='</div>';
+    h2 += '</div>';
   }
 
-  document.getElementById('c-hoy').innerHTML=h2||'<div class="empty"><div class="ei">🌟</div>Todo al día.</div>';
+  document.getElementById('c-hoy').innerHTML = h2 || '<div class="empty"><div class="ei">🌟</div>Todo al día.</div>';
 }
 
-function toggleVenc(){
-  vencOpen=!vencOpen;
-  const el=document.getElementById('vencList');
-  const sub=document.getElementById('vencSub');
-  if(el)el.style.display=vencOpen?'block':'none';
-  if(sub)sub.textContent=vencOpen?'Tocá para ocultar':'Tocá para ver';
+function toggleVenc() {
+  vencOpen = !vencOpen;
+  var el = document.getElementById('vencList');
+  var sub = document.getElementById('vencSub');
+  if (el) el.style.display = vencOpen ? 'block' : 'none';
+  if (sub) sub.textContent = vencOpen ? 'Tocá para ocultar' : 'Tocá para ver';
 }
 
-// ÁREAS
-function rAreas(){
-  let h='<div class="agrid">';
-  for(const a of AREAS){
-    const n=items.filter(t=>t.area===a.id&&t.estado!=='completado').length;
-    h+=`<div class="acard" onclick="irArea('${a.id}')">
-      <div class="ai">${a.i}</div>
-      <div class="al">${a.l}</div>
-      <div class="ac${n?' has':''}">${n?`${n} pend.`:' '}</div>
-    </div>`;
+function rAreas() {
+  var h = '<div class="agrid">';
+  for (var i = 0; i < AREAS.length; i++) {
+    var a = AREAS[i];
+    var n = items.filter(function(t){ return t.area === a.id && t.estado !== 'completado'; }).length;
+    h += '<div class="acard" onclick="irArea(\'' + a.id + '\')">';
+    h += '<div class="ai">' + a.i + '</div>';
+    h += '<div class="al">' + a.l + '</div>';
+    h += '<div class="ac' + (n ? ' has' : '') + '">' + (n ? n + ' pend.' : ' ') + '</div>';
+    h += '</div>';
   }
-  h+='</div>';
-  document.getElementById('c-areas').innerHTML=h;
+  h += '</div>';
+  document.getElementById('c-areas').innerHTML = h;
 }
 
-function irArea(id){
-  areaAct=id;
-  if(tabAct!=='areas'){setTab('areas');}
-  else{rAreaDet();document.getElementById('hdrDay').textContent=AM[id]?.l||id;}
+function irArea(id) {
+  areaAct = id;
+  if (tabAct !== 'areas') setTab('areas');
+  else { rAreaDet(); document.getElementById('hdrDay').textContent = (AM[id] && AM[id].l) || id; }
 }
 
-function rAreaDet(){
-  const a=AM[areaAct];if(!a)return;
-  const pend=items.filter(t=>t.area===areaAct&&t.estado!=='completado').sort((a,b)=>{
-    if(a.fecha&&b.fecha)return a.fecha.localeCompare(b.fecha);
-    if(a.fecha)return-1;if(b.fecha)return 1;return 0;
+function rAreaDet() {
+  var a = AM[areaAct]; if (!a) return;
+  var pend = items.filter(function(t){ return t.area === areaAct && t.estado !== 'completado'; });
+  pend.sort(function(x,y){
+    if (x.fecha && y.fecha) return x.fecha < y.fecha ? -1 : 1;
+    if (x.fecha) return -1; if (y.fecha) return 1; return 0;
   });
-  const done=items.filter(t=>t.area===areaAct&&t.estado==='completado');
-  let h=`<button class="back-btn" onclick="volverAreas()">← Áreas</button>
-  <div class="area-hdr">
-    <div class="ahi">${a.i}</div>
-    <div class="area-hdr-txt"><h2>${a.l}</h2><p>${pend.length} pendiente${pend.length!==1?'s':''}</p></div>
-    <button class="hdr-btn" onclick="abrirModalArea('${areaAct}')">+ Agregar</button>
-  </div>`;
-  if(!pend.length&&!done.length){
-    h+=`<div class="empty"><div class="ei">${a.i}</div>No hay tareas en ${a.l}.</div>`;
+  var done = items.filter(function(t){ return t.area === areaAct && t.estado === 'completado'; });
+  var h = '<button class="back-btn" onclick="volverAreas()">← Áreas</button>';
+  h += '<div class="area-hdr"><div class="ahi">' + a.i + '</div>';
+  h += '<div class="area-hdr-txt"><h2>' + a.l + '</h2><p>' + pend.length + ' pendiente' + (pend.length !== 1 ? 's' : '') + '</p></div>';
+  h += '<button class="hdr-btn" onclick="abrirModalArea(\'' + areaAct + '\')">+ Agregar</button></div>';
+  if (!pend.length && !done.length) {
+    h += '<div class="empty"><div class="ei">' + a.i + '</div>No hay tareas en ' + a.l + '.</div>';
   }
-  if(pend.length)h+=pend.map(t=>tiHtml(t,false)).join('');
-  if(done.length){
-    h+=`<div class="slbl">Completados (${done.length})</div>`;
-    h+=done.map(t=>tiHtml(t,false)).join('');
+  for (var i = 0; i < pend.length; i++) h += tiHtml(pend[i], false);
+  if (done.length) {
+    h += '<div class="slbl">Completados (' + done.length + ')</div>';
+    for (var i = 0; i < done.length; i++) h += tiHtml(done[i], false);
   }
-  document.getElementById('c-areas').innerHTML=h;
-  document.getElementById('hdrDay').textContent=a.l;
+  document.getElementById('c-areas').innerHTML = h;
+  document.getElementById('hdrDay').textContent = a.l;
 }
 
-function volverAreas(){areaAct=null;rAreas();document.getElementById('hdrDay').textContent='Mis Áreas';}
+function volverAreas() { areaAct = null; rAreas(); document.getElementById('hdrDay').textContent = 'Mis Áreas'; }
 
-// PRÓXIMAS
-function rProx(){
-  const grupos=[];
-  for(let i=1;i<=21;i++){
-    const d=new Date();d.setDate(d.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
-    const its=items.filter(t=>t.fecha===ds&&t.estado!=='completado');
-    if(its.length)grupos.push({ds,its});
+function rProx() {
+  var grupos = [];
+  for (var i = 1; i <= 21; i++) {
+    var d = new Date(); d.setDate(d.getDate()+i);
+    var ds = d.toISOString().slice(0,10);
+    var its = items.filter(function(t){ return t.fecha === ds && t.estado !== 'completado'; });
+    if (its.length) grupos.push({ds:ds, its:its});
   }
-  if(!grupos.length){
-    document.getElementById('c-prox').innerHTML='<div class="empty"><div class="ei">📅</div>Sin tareas en los próximos 21 días.</div>';
+  if (!grupos.length) {
+    document.getElementById('c-prox').innerHTML = '<div class="empty"><div class="ei">📅</div>Sin tareas en los próximos 21 días.</div>';
     return;
   }
-  const dN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const mN=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  let h='';
-  for(const g of grupos){
-    const d=new Date(g.ds+'T12:00:00');
-    h+=`<div class="dgrp"><div class="dgrp-lbl">${dN[d.getDay()]} ${d.getDate()} ${mN[d.getMonth()]}</div>${g.its.map(t=>tiHtml(t)).join('')}</div>`;
+  var dN = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var mN = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var h = '';
+  for (var i = 0; i < grupos.length; i++) {
+    var g = grupos[i];
+    var d = new Date(g.ds + 'T12:00:00');
+    h += '<div class="dgrp"><div class="dgrp-lbl">' + dN[d.getDay()] + ' ' + d.getDate() + ' ' + mN[d.getMonth()] + '</div>';
+    for (var j = 0; j < g.its.length; j++) h += tiHtml(g.its[j]);
+    h += '</div>';
   }
-  document.getElementById('c-prox').innerHTML=h;
+  document.getElementById('c-prox').innerHTML = h;
 }
 
-// CONFIG
-function rConfig(){
-  const tot=items.length,comp=items.filter(t=>t.estado==='completado').length;
-  document.getElementById('c-config').innerHTML=`
-  <div class="slbl">Datos</div>
-  <div class="set-row"><span class="set-row-l">📊 Total de tareas</span><span class="set-row-r">${tot}</span></div>
-  <div class="set-row"><span class="set-row-l">✅ Completadas</span><span class="set-row-r">${comp}</span></div>
-  <div class="set-row"><span class="set-row-l">📋 Pendientes</span><span class="set-row-r">${tot-comp}</span></div>
-  <div class="slbl">Copia de seguridad</div>
-  <div class="set-row" onclick="exportar()"><span class="set-row-l">⬇️ Exportar JSON</span><span class="set-row-r">›</span></div>
-  <div class="set-row" onclick="document.getElementById('fInput').click()"><span class="set-row-l">⬆️ Importar JSON</span><span class="set-row-r">›</span></div>
-  <input type="file" id="fInput" accept=".json" style="display:none" onchange="importar(event)">
-  <div class="slbl">Extracción desde imagen (IA)</div>
-  <div class="set-row" onclick="document.getElementById('imgInput').click()"><span class="set-row-l">📷 Subir imagen</span><span class="set-row-r">Extraer eventos</span></div>
-  <div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Anthropic API Key</span><span class="set-row-r">${localStorage.getItem('anthropic_key')?'✓ Configurada':'Sin configurar'}</span></div>
-  <div class="slbl">Agregar rápido por área</div>
-  ${AREAS.map(a=>`<div class="set-row" onclick="abrirModalArea('${a.id}')"><span class="set-row-l">${a.i} ${a.l}</span><span class="set-row-r">+ Agregar</span></div>`).join('')}
-  <div style="height:10px"></div>`;
+function rConfig() {
+  var tot = items.length;
+  var comp = items.filter(function(t){ return t.estado === 'completado'; }).length;
+  var h = '<div class="slbl">Datos</div>';
+  h += '<div class="set-row"><span class="set-row-l">📊 Total de tareas</span><span class="set-row-r">' + tot + '</span></div>';
+  h += '<div class="set-row"><span class="set-row-l">✅ Completadas</span><span class="set-row-r">' + comp + '</span></div>';
+  h += '<div class="set-row"><span class="set-row-l">📋 Pendientes</span><span class="set-row-r">' + (tot-comp) + '</span></div>';
+  h += '<div class="slbl">Copia de seguridad</div>';
+  h += '<div class="set-row" onclick="exportar()"><span class="set-row-l">⬇️ Exportar JSON</span><span class="set-row-r">›</span></div>';
+  h += '<div class="set-row" onclick="document.getElementById(\'fInput\').click()"><span class="set-row-l">⬆️ Importar JSON</span><span class="set-row-r">›</span></div>';
+  h += '<input type="file" id="fInput" accept=".json" style="display:none" onchange="importar(event)">';
+  h += '<div class="slbl">Extracción desde imagen (IA)</div>';
+  h += '<div class="set-row" onclick="document.getElementById(\'imgInput\').click()"><span class="set-row-l">📷 Subir imagen</span><span class="set-row-r">Extraer eventos</span></div>';
+  var keyOk = localStorage.getItem('anthropic_key') ? '✓ Configurada' : 'Sin configurar';
+  h += '<div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Anthropic API Key</span><span class="set-row-r">' + keyOk + '</span></div>';
+  h += '<div class="slbl">Agregar rápido por área</div>';
+  for (var i = 0; i < AREAS.length; i++) {
+    var a = AREAS[i];
+    h += '<div class="set-row" onclick="abrirModalArea(\'' + a.id + '\')"><span class="set-row-l">' + a.i + ' ' + a.l + '</span><span class="set-row-r">+ Agregar</span></div>';
+  }
+  h += '<div style="height:10px"></div>';
+  document.getElementById('c-config').innerHTML = h;
 }
 
-// SEARCH
-function onSearch(){
-  const q=document.getElementById('search').value.trim().toLowerCase();
-  searchQ=q;
-  document.getElementById('clrSearch').style.display=q?'':'none';
-  if(q){
-    if(tabAct!=='search'){
-      document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-search'));
-      document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
-      document.getElementById('hdrDay').textContent='Búsqueda';
+function onSearch() {
+  var q = document.getElementById('search').value.trim().toLowerCase();
+  searchQ = q;
+  document.getElementById('clrSearch').style.display = q ? '' : 'none';
+  if (q) {
+    var views = document.querySelectorAll('.view');
+    for (var i = 0; i < views.length; i++) {
+      views[i].classList[views[i].id === 'view-search' ? 'add' : 'remove']('active');
     }
+    var tabs = document.querySelectorAll('.ntab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    document.getElementById('hdrDay').textContent = 'Búsqueda';
     rSearch();
   } else {
-    setTab(tabAct==='search'?'hoy':tabAct);
+    setTab(tabAct === 'search' ? 'hoy' : tabAct);
   }
 }
 
-function clearSearch(){
-  document.getElementById('search').value='';
-  searchQ='';
-  document.getElementById('clrSearch').style.display='none';
+function clearSearch() {
+  document.getElementById('search').value = '';
+  searchQ = '';
+  document.getElementById('clrSearch').style.display = 'none';
   setTab('hoy');
 }
 
-function rSearch(){
-  const q=searchQ;
-  if(!q){document.getElementById('c-search').innerHTML='';return;}
-  const res=items.filter(t=>
-    t.titulo.toLowerCase().includes(q)||
-    (t.detalle||'').toLowerCase().includes(q)||
-    (t.quien||'').toLowerCase().includes(q)||
-    (AM[t.area]?.l||'').toLowerCase().includes(q)
-  );
-  let h=`<div class="slbl">${res.length} resultado${res.length!==1?'s':''} para "${esc(q)}"</div>`;
-  h+=res.length?res.map(t=>tiHtml(t)).join(''):'<div class="empty">No se encontró nada.</div>';
-  document.getElementById('c-search').innerHTML=h;
+function rSearch() {
+  var q = searchQ;
+  if (!q) { document.getElementById('c-search').innerHTML = ''; return; }
+  var res = items.filter(function(t){
+    return t.titulo.toLowerCase().indexOf(q) !== -1 ||
+      (t.detalle||'').toLowerCase().indexOf(q) !== -1 ||
+      (t.quien||'').toLowerCase().indexOf(q) !== -1 ||
+      ((AM[t.area] && AM[t.area].l) || '').toLowerCase().indexOf(q) !== -1;
+  });
+  var h = '<div class="slbl">' + res.length + ' resultado' + (res.length !== 1 ? 's' : '') + ' para "' + esc(q) + '"</div>';
+  if (res.length) { for (var i = 0; i < res.length; i++) h += tiHtml(res[i]); }
+  else h += '<div class="empty">No se encontró nada.</div>';
+  document.getElementById('c-search').innerHTML = h;
 }
 
-// ── ACCIONES ──────────────────────────────────────────────────────────────────
-function toggleDone(id){
-  const t=items.find(x=>x.id===id);if(!t)return;
-  if(t.recur&&t.estado!=='completado'){avanzar(t);toast('↻ Ciclo avanzado');}
-  else{t.estado=t.estado==='completado'?'pendiente':'completado';}
-  guardar();renderTab(tabAct);
+function toggleDone(id) {
+  var t = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === id) { t = items[i]; break; }
+  if (!t) return;
+  if (t.recur && t.estado !== 'completado') { avanzar(t); toast('↻ Ciclo avanzado'); }
+  else { t.estado = t.estado === 'completado' ? 'pendiente' : 'completado'; }
+  guardar(); renderTab(tabAct);
 }
 
-function pedirEliminar(id){
-  const t=items.find(x=>x.id===id);if(!t)return;
-  document.getElementById('mcon').innerHTML=`
-    <div class="stitle">¿Eliminar tarea?</div>
-    <p style="color:var(--t3);font-size:14px;margin-bottom:16px">"${esc(t.titulo)}" se eliminará para siempre.</p>
-    <div class="sbtns">
-      <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
-      <button class="sbtn" style="background:var(--red);color:#fff" onclick="eliminar(${id})">Eliminar</button>
-    </div>`;
+function pedirEliminar(id) {
+  var t = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === id) { t = items[i]; break; }
+  if (!t) return;
+  document.getElementById('mcon').innerHTML =
+    '<div class="stitle">¿Eliminar tarea?</div>' +
+    '<p style="color:var(--t3);font-size:14px;margin-bottom:16px">"' + esc(t.titulo) + '" se eliminará para siempre.</p>' +
+    '<div class="sbtns">' +
+    '<button class="sbtn s" onclick="cerrarModal()">Cancelar</button>' +
+    '<button class="sbtn" style="background:var(--red);color:#fff" onclick="eliminar(' + id + ')">Eliminar</button>' +
+    '</div>';
   showSheet();
 }
 
-function eliminar(id){
-  items=items.filter(x=>x.id!==id);
-  guardar();cerrarModal();renderTab(tabAct);toast('🗑 Eliminado');
+function eliminar(id) {
+  items = items.filter(function(x){ return x.id !== id; });
+  guardar(); cerrarModal(); renderTab(tabAct); toast('🗑 Eliminado');
 }
 
-// ── FORMULARIO ────────────────────────────────────────────────────────────────
-function abrirModal(def=''){
-  editId=null;
+function abrirModal(def) {
+  if (!def) def = '';
+  editId = null;
   mostrarForm({titulo:'',detalle:'',area:def||areaAct||'pendientes',estado:'pendiente',fecha:'',hora:'',recur:'',dia:'',quien:'',prio:'normal'});
 }
-function abrirModalArea(id){cerrarModal();setTimeout(()=>abrirModal(id),60);}
-function abrirEditar(id){
-  editId=id;const t=items.find(x=>x.id===id);if(!t)return;
-  mostrarForm({...t,dia:t.dia||'',recur:t.recur||''});
+
+function abrirModalArea(id) {
+  cerrarModal();
+  setTimeout(function(){ abrirModal(id); }, 60);
 }
 
-function mostrarForm(f){
-  const ao=AREAS.map(a=>`<option value="${a.id}"${f.area===a.id?' selected':''}>${a.i} ${a.l}</option>`).join('');
-  document.getElementById('mcon').innerHTML=`
-    <div class="stitle">${editId?'Editar':'Nueva tarea'}</div>
-    <div class="sfield"><label>Tarea *</label>
-      <input id="fT" value="${esc(f.titulo)}" placeholder="¿Qué hay que hacer?">
-    </div>
-    <div class="frow">
-      <div class="sfield"><label>Área</label><select id="fA">${ao}</select></div>
-      <div class="sfield"><label>Prioridad</label>
-        <select id="fP">
-          <option value="normal"${f.prio==='normal'?' selected':''}>Normal</option>
-          <option value="alta"${f.prio==='alta'?' selected':''}>❗ Alta</option>
-          <option value="baja"${f.prio==='baja'?' selected':''}>Baja</option>
-        </select>
-      </div>
-    </div>
-    <div class="frow">
-      <div class="sfield"><label>Fecha</label><input type="date" id="fF" value="${f.fecha}"></div>
-      <div class="sfield"><label>Hora</label><input type="time" id="fH" value="${f.hora||''}"></div>
-    </div>
-    <div class="frow">
-      <div class="sfield"><label>Repite</label>
-        <select id="fR" onchange="onRecur()">
-          <option value=""${!f.recur?' selected':''}>No repite</option>
-          <option value="diaria"${f.recur==='diaria'?' selected':''}>Diaria</option>
-          <option value="semanal"${f.recur==='semanal'?' selected':''}>Semanal</option>
-          <option value="mensual"${f.recur==='mensual'?' selected':''}>Mensual</option>
-          <option value="anual"${f.recur==='anual'?' selected':''}>Anual</option>
-        </select>
-      </div>
-      <div class="sfield"><label>¿Para quién?</label>
-        <input id="fQ" value="${esc(f.quien||'')}" placeholder="Ramiro, Milán, Yo…">
-      </div>
-    </div>
-    <div class="sfield" id="fDW" style="display:${f.recur==='mensual'?'block':'none'}">
-      <label>Día del mes</label>
-      <input type="number" id="fD" min="1" max="31" value="${f.dia||''}" placeholder="Ej: 10">
-    </div>
-    <div class="sfield"><label>Notas</label>
-      <textarea id="fN" placeholder="Detalle adicional…">${esc(f.detalle||'')}</textarea>
-    </div>
-    ${editId?`<div class="sfield"><label>Estado</label>
-      <select id="fE">
-        <option value="pendiente"${f.estado==='pendiente'?' selected':''}>Pendiente</option>
-        <option value="en-curso"${f.estado==='en-curso'?' selected':''}>En curso</option>
-        <option value="completado"${f.estado==='completado'?' selected':''}>Completado</option>
-      </select></div>`:''}
-    <div class="sbtns">
-      <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
-      <button class="sbtn p" onclick="guardarForm()">Guardar</button>
-    </div>`;
+function abrirEditar(id) {
+  editId = id;
+  var t = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === id) { t = items[i]; break; }
+  if (!t) return;
+  var copy = {};
+  for (var k in t) copy[k] = t[k];
+  copy.dia = t.dia || '';
+  copy.recur = t.recur || '';
+  mostrarForm(copy);
+}
+
+function mostrarForm(f) {
+  var ao = '';
+  for (var i = 0; i < AREAS.length; i++) {
+    var a = AREAS[i];
+    ao += '<option value="' + a.id + '"' + (f.area === a.id ? ' selected' : '') + '>' + a.i + ' ' + a.l + '</option>';
+  }
+  var h = '<div class="stitle">' + (editId ? 'Editar' : 'Nueva tarea') + '</div>';
+  h += '<div class="sfield"><label>Tarea *</label><input id="fT" value="' + esc(f.titulo) + '" placeholder="¿Qué hay que hacer?"></div>';
+  h += '<div class="frow">';
+  h += '<div class="sfield"><label>Área</label><select id="fA">' + ao + '</select></div>';
+  h += '<div class="sfield"><label>Prioridad</label><select id="fP">';
+  h += '<option value="normal"' + (f.prio === 'normal' ? ' selected' : '') + '>Normal</option>';
+  h += '<option value="alta"' + (f.prio === 'alta' ? ' selected' : '') + '>❗ Alta</option>';
+  h += '<option value="baja"' + (f.prio === 'baja' ? ' selected' : '') + '>Baja</option>';
+  h += '</select></div></div>';
+  h += '<div class="frow">';
+  h += '<div class="sfield"><label>Fecha</label><input type="date" id="fF" value="' + f.fecha + '"></div>';
+  h += '<div class="sfield"><label>Hora</label><input type="time" id="fH" value="' + (f.hora||'') + '"></div>';
+  h += '</div><div class="frow">';
+  h += '<div class="sfield"><label>Repite</label><select id="fR" onchange="onRecur()">';
+  h += '<option value=""' + (!f.recur ? ' selected' : '') + '>No repite</option>';
+  h += '<option value="diaria"' + (f.recur === 'diaria' ? ' selected' : '') + '>Diaria</option>';
+  h += '<option value="semanal"' + (f.recur === 'semanal' ? ' selected' : '') + '>Semanal</option>';
+  h += '<option value="mensual"' + (f.recur === 'mensual' ? ' selected' : '') + '>Mensual</option>';
+  h += '<option value="anual"' + (f.recur === 'anual' ? ' selected' : '') + '>Anual</option>';
+  h += '</select></div>';
+  h += '<div class="sfield"><label>¿Para quién?</label><input id="fQ" value="' + esc(f.quien||'') + '" placeholder="Ramiro, Milán, Yo…"></div>';
+  h += '</div>';
+  h += '<div class="sfield" id="fDW" style="display:' + (f.recur === 'mensual' ? 'block' : 'none') + '">';
+  h += '<label>Día del mes</label><input type="number" id="fD" min="1" max="31" value="' + (f.dia||'') + '" placeholder="Ej: 10"></div>';
+  h += '<div class="sfield"><label>Notas</label><textarea id="fN" placeholder="Detalle adicional…">' + esc(f.detalle||'') + '</textarea></div>';
+  if (editId) {
+    h += '<div class="sfield"><label>Estado</label><select id="fE">';
+    h += '<option value="pendiente"' + (f.estado === 'pendiente' ? ' selected' : '') + '>Pendiente</option>';
+    h += '<option value="en-curso"' + (f.estado === 'en-curso' ? ' selected' : '') + '>En curso</option>';
+    h += '<option value="completado"' + (f.estado === 'completado' ? ' selected' : '') + '>Completado</option>';
+    h += '</select></div>';
+  }
+  h += '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cancelar</button><button class="sbtn p" onclick="guardarForm()">Guardar</button></div>';
+  document.getElementById('mcon').innerHTML = h;
   showSheet();
-  setTimeout(()=>document.getElementById('fT')?.focus(),250);
+  setTimeout(function(){ var el = document.getElementById('fT'); if (el) el.focus(); }, 250);
 }
 
-function onRecur(){
-  const r=document.getElementById('fR')?.value;
-  const w=document.getElementById('fDW');
-  if(w)w.style.display=r==='mensual'?'block':'none';
+function onRecur() {
+  var fR = document.getElementById('fR');
+  var w = document.getElementById('fDW');
+  if (w && fR) w.style.display = fR.value === 'mensual' ? 'block' : 'none';
 }
 
-function guardarForm(){
-  const titulo=document.getElementById('fT')?.value.trim();
-  if(!titulo){alert('El nombre es obligatorio.');return;}
-  const recur=document.getElementById('fR')?.value||'';
-  const dEl=document.getElementById('fD');
-  const eEl=document.getElementById('fE');
-  const obj={
-    titulo,
-    detalle:document.getElementById('fN')?.value.trim()||'',
-    area:document.getElementById('fA')?.value||'pendientes',
-    prio:document.getElementById('fP')?.value||'normal',
-    fecha:document.getElementById('fF')?.value||'',
-    hora:document.getElementById('fH')?.value||'',
-    recur,
-    dia:recur==='mensual'&&dEl?.value?parseInt(dEl.value):null,
-    quien:document.getElementById('fQ')?.value.trim()||'',
-    estado:eEl?eEl.value:'pendiente',
+function guardarForm() {
+  var fT = document.getElementById('fT');
+  if (!fT || !fT.value.trim()) { alert('El nombre es obligatorio.'); return; }
+  var titulo = fT.value.trim();
+  var fR = document.getElementById('fR');
+  var recur = fR ? fR.value : '';
+  var dEl = document.getElementById('fD');
+  var eEl = document.getElementById('fE');
+  var fN = document.getElementById('fN');
+  var fA = document.getElementById('fA');
+  var fP = document.getElementById('fP');
+  var fF = document.getElementById('fF');
+  var fH = document.getElementById('fH');
+  var fQ = document.getElementById('fQ');
+  var obj = {
+    titulo: titulo,
+    detalle: fN ? fN.value.trim() : '',
+    area: fA ? fA.value : 'pendientes',
+    prio: fP ? fP.value : 'normal',
+    fecha: fF ? fF.value : '',
+    hora: fH ? fH.value : '',
+    recur: recur,
+    dia: (recur === 'mensual' && dEl && dEl.value) ? parseInt(dEl.value) : null,
+    quien: fQ ? fQ.value.trim() : '',
+    estado: eEl ? eEl.value : 'pendiente'
   };
-  if(editId)items=items.map(t=>t.id===editId?{...t,...obj}:t);
-  else items.push({id:nextId++,...obj});
-  guardar();cerrarModal();renderTab(tabAct);
-  toast(editId?'✓ Actualizado':'✓ Guardado');
+  if (editId) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === editId) { for (var k in obj) items[i][k] = obj[k]; break; }
+    }
+  } else {
+    obj.id = nextId++;
+    items.push(obj);
+  }
+  guardar(); cerrarModal(); renderTab(tabAct);
+  toast(editId ? '✓ Actualizado' : '✓ Guardado');
 }
 
-// ── SHEET ─────────────────────────────────────────────────────────────────────
-function showSheet(){
+function showSheet() {
   document.getElementById('moverlay').classList.add('on');
-  requestAnimationFrame(()=>document.getElementById('msheet').classList.add('on'));
+  var ms = document.getElementById('msheet');
+  setTimeout(function(){ ms.classList.add('on'); }, 10);
 }
-function cerrarModal(){
+
+function cerrarModal() {
   document.getElementById('moverlay').classList.remove('on');
   document.getElementById('msheet').classList.remove('on');
-  editId=null;
+  editId = null;
 }
 
-// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
-function exportar(){
-  const data=JSON.stringify({version:2,items},null,2);
-  const a=document.createElement('a');
-  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
-  a.download='mi_agenda_backup.json';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
+function exportar() {
+  var data = JSON.stringify({version:2, items:items}, null, 2);
+  var a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(data);
+  a.download = 'mi_agenda_backup.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   toast('⬇️ JSON descargado');
 }
-function importar(e){
-  const file=e.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    try{
-      const d=JSON.parse(ev.target.result);
-      const lista=d.items||d.tareas||d;
-      if(!Array.isArray(lista))throw new Error();
-      // Migrate old format if needed
-      items=lista.map(t=>({
-        id:t.id,
-        titulo:t.titulo||t.nombre||'Sin título',
-        detalle:t.detalle||t.desc||'',
-        area:t.area||(t.imp?'pendientes':'pendientes'),
-        prio:t.prio||(t.imp==='alta'?'alta':t.imp==='baja'?'baja':'normal'),
-        fecha:t.fecha||'',
-        hora:t.hora||'',
-        recur:t.recur||'',
-        dia:t.dia||null,
-        quien:t.quien||t.resp||'',
-        estado:t.estado||'pendiente',
-      }));
-      nextId=items.reduce((m,t)=>Math.max(m,t.id||0),0)+1;
-      guardar();renderTab(tabAct);toast(`✓ ${items.length} tareas importadas`);
-    }catch{toast('⚠️ Archivo no válido');}
+
+function importar(e) {
+  var file = e.target.files[0]; if (!file) return;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    try {
+      var d = JSON.parse(ev.target.result);
+      var lista = d.items || d.tareas || d;
+      if (!Array.isArray(lista)) throw new Error();
+      items = lista.map(function(t) {
+        return {
+          id: t.id,
+          titulo: t.titulo || t.nombre || 'Sin título',
+          detalle: t.detalle || t.desc || '',
+          area: t.area || 'pendientes',
+          prio: t.prio || (t.imp === 'alta' ? 'alta' : t.imp === 'baja' ? 'baja' : 'normal'),
+          fecha: t.fecha || '',
+          hora: t.hora || '',
+          recur: t.recur || '',
+          dia: t.dia || null,
+          quien: t.quien || t.resp || '',
+          estado: t.estado || 'pendiente'
+        };
+      });
+      nextId = items.reduce(function(m,t){ return Math.max(m, t.id||0); }, 0) + 1;
+      guardar(); renderTab(tabAct); toast('✓ ' + items.length + ' tareas importadas');
+    } catch(err) { toast('⚠️ Archivo no válido'); }
   };
-  r.readAsText(file);e.target.value='';
+  r.readAsText(file); e.target.value = '';
 }
 
-// ── IMAGEN + IA ───────────────────────────────────────────────────────────────
-
-function procesarImagen(e){
-  const file=e.target.files[0]; if(!file)return; e.target.value='';
-  pendingFile=file;
-  const key=localStorage.getItem('anthropic_key');
-  if(!key){ editarApiKey(true); return; }
-  procesarConClaude(file,key);
+function procesarImagen(e) {
+  var file = e.target.files[0]; if (!file) return; e.target.value = '';
+  pendingFile = file;
+  var key = localStorage.getItem('anthropic_key');
+  if (!key) { editarApiKey(true); return; }
+  procesarConClaude(file, key);
 }
 
-async function procesarConClaude(file,apiKey){
-  document.getElementById('mcon').innerHTML=`
-    <div style="text-align:center;padding:32px 16px">
-      <div style="font-size:44px;margin-bottom:12px">🔍</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando imagen…</div>
-      <div style="font-size:13px;color:var(--t3)">Buscando fechas, horarios y eventos</div>
-    </div>`;
-  showSheet();
-  try{
-    const b64=await fileToB64(file);
-    const mt=file.type||'image/jpeg';
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true',
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:1500,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:mt,data:b64}},
-            {type:'text',text:`Hoy es ${hoy()}. Analizá esta imagen: puede ser un horario de clases, turno médico, agenda escolar, programa de eventos, recordatorio o cualquier calendario.
-Extraé TODOS los eventos, citas, clases, fechas de entrega o tareas que veas.
-Respondé ÚNICAMENTE con un JSON array válido, sin texto adicional, sin markdown:
-[{"titulo":"descripción corta en español","area":"una de: colegio|hogar|compras|salud|maestria|ingles|pagos|remedios|pendientes|tramites|eventos|gimnasio","fecha":"YYYY-MM-DD o null","hora":"HH:MM o null","quien":"persona si se menciona, sino vacío"}]
-Si no encontrás nada respondé: []`}
-          ]
-        }]
-      })
-    });
-    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Error ${res.status}`);}
-    const data=await res.json();
-    let txt=data.content[0].text.trim();
-    if(txt.includes('```'))txt=txt.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
-    const evs=JSON.parse(txt);
-    if(!Array.isArray(evs))throw new Error('Respuesta inesperada');
-    mostrarPreviewEventos(evs);
-  }catch(err){
-    document.getElementById('mcon').innerHTML=`
-      <div class="stitle">⚠️ Error</div>
-      <p style="color:var(--t3);font-size:14px;margin-bottom:16px">${esc(String(err.message))}</p>
-      <p style="color:var(--t3);font-size:12px;margin-bottom:16px">Verificá tu API key en Ajustes o intentá con otra imagen.</p>
-      <div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>`;
-  }
-}
-
-function fileToB64(file){
-  return new Promise((ok,fail)=>{
-    const r=new FileReader();
-    r.onload=e=>ok(e.target.result.split(',')[1]);
-    r.onerror=fail;
+function fileToB64(file) {
+  return new Promise(function(ok, fail) {
+    var r = new FileReader();
+    r.onload = function(e) { ok(e.target.result.split(',')[1]); };
+    r.onerror = fail;
     r.readAsDataURL(file);
   });
 }
 
-function mostrarPreviewEventos(evs){
-  if(!evs.length){
-    document.getElementById('mcon').innerHTML=`
-      <div class="stitle">Sin resultados</div>
-      <p style="color:var(--t3);font-size:14px;margin-bottom:16px">No se encontraron eventos en la imagen. Probá con una foto más clara o con mejor iluminación.</p>
-      <div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>`;
+function procesarConClaude(file, apiKey) {
+  document.getElementById('mcon').innerHTML =
+    '<div style="text-align:center;padding:32px 16px">' +
+    '<div style="font-size:44px;margin-bottom:12px">🔍</div>' +
+    '<div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando imagen…</div>' +
+    '<div style="font-size:13px;color:var(--t3)">Buscando fechas, horarios y eventos</div>' +
+    '</div>';
+  showSheet();
+
+  fileToB64(file).then(function(b64) {
+    var mt = file.type || 'image/jpeg';
+    var prompt = 'Hoy es ' + hoy() + '. Analizá esta imagen: puede ser un horario de clases, turno médico, agenda escolar, programa de eventos, recordatorio o cualquier calendario.\n' +
+      'Extraé TODOS los eventos, citas, clases, fechas de entrega o tareas que veas.\n' +
+      'Respondé ÚNICAMENTE con un JSON array válido, sin texto adicional, sin markdown:\n' +
+      '[{"titulo":"descripción corta en español","area":"una de: colegio|hogar|compras|salud|maestria|ingles|pagos|remedios|pendientes|tramites|eventos|gimnasio","fecha":"YYYY-MM-DD o null","hora":"HH:MM o null","quien":"persona si se menciona, sino vacío"}]\n' +
+      'Si no encontrás nada respondé: []';
+    return fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: [
+            {type:'image', source:{type:'base64', media_type:mt, data:b64}},
+            {type:'text', text:prompt}
+          ]
+        }]
+      })
+    });
+  }).then(function(res) {
+    if (!res.ok) {
+      return res.json().then(function(e) {
+        throw new Error((e.error && e.error.message) || 'Error ' + res.status);
+      });
+    }
+    return res.json();
+  }).then(function(data) {
+    var txt = data.content[0].text.trim();
+    if (txt.indexOf('```') !== -1) txt = txt.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
+    var evs = JSON.parse(txt);
+    if (!Array.isArray(evs)) throw new Error('Respuesta inesperada');
+    mostrarPreviewEventos(evs);
+  }).catch(function(err) {
+    document.getElementById('mcon').innerHTML =
+      '<div class="stitle">⚠️ Error</div>' +
+      '<p style="color:var(--t3);font-size:14px;margin-bottom:16px">' + esc(String(err.message)) + '</p>' +
+      '<p style="color:var(--t3);font-size:12px;margin-bottom:16px">Verificá tu API key en Ajustes o intentá con otra imagen.</p>' +
+      '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>';
+  });
+}
+
+function mostrarPreviewEventos(evs) {
+  if (!evs.length) {
+    document.getElementById('mcon').innerHTML =
+      '<div class="stitle">Sin resultados</div>' +
+      '<p style="color:var(--t3);font-size:14px;margin-bottom:16px">No se encontraron eventos en la imagen.</p>' +
+      '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>';
     return;
   }
-  let html=`<div class="stitle">📋 ${evs.length} evento${evs.length>1?'s':''} encontrado${evs.length>1?'s':''}</div>
-  <p style="color:var(--t3);font-size:12px;margin-bottom:12px">Editá los datos si es necesario y seleccioná cuáles agregar.</p>`;
-  evs.forEach((ev,i)=>{
-    const ao=AREAS.map(a=>`<option value="${a.id}"${(ev.area||'pendientes')===a.id?' selected':''}>${a.i} ${a.l}</option>`).join('');
-    html+=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <input type="checkbox" id="ck${i}" checked style="width:18px;height:18px;cursor:pointer;flex-shrink:0">
-        <input id="pt${i}" value="${esc(ev.titulo||'')}" style="flex:1;border:none;background:none;font-size:14px;font-weight:600;color:var(--t1);outline:none;min-width:0">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">ÁREA</div>
-          <select id="pa${i}" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card);-webkit-appearance:none">${ao}</select></div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">FECHA</div>
-          <input type="date" id="pf${i}" value="${ev.fecha||''}" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">HORA</div>
-          <input type="time" id="ph${i}" value="${ev.hora||''}" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">¿PARA QUIÉN?</div>
-          <input id="pq${i}" value="${esc(ev.quien||'')}" placeholder="Opcional" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>
-      </div>
-    </div>`;
-  });
-  html+=`<div class="sbtns">
-    <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
-    <button class="sbtn p" onclick="importarEventos(${evs.length})">Agregar seleccionados</button>
-  </div>`;
-  document.getElementById('mcon').innerHTML=html;
+  var html = '<div class="stitle">📋 ' + evs.length + ' evento' + (evs.length > 1 ? 's' : '') + ' encontrado' + (evs.length > 1 ? 's' : '') + '</div>';
+  html += '<p style="color:var(--t3);font-size:12px;margin-bottom:12px">Editá los datos y seleccioná cuáles agregar.</p>';
+  for (var i = 0; i < evs.length; i++) {
+    var ev = evs[i];
+    var ao = '';
+    for (var j = 0; j < AREAS.length; j++) {
+      var a = AREAS[j];
+      ao += '<option value="' + a.id + '"' + ((ev.area||'pendientes') === a.id ? ' selected' : '') + '>' + a.i + ' ' + a.l + '</option>';
+    }
+    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px;margin-bottom:10px">';
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+    html += '<input type="checkbox" id="ck' + i + '" checked style="width:18px;height:18px;cursor:pointer;flex-shrink:0">';
+    html += '<input id="pt' + i + '" value="' + esc(ev.titulo||'') + '" style="flex:1;border:none;background:none;font-size:14px;font-weight:600;color:var(--t1);outline:none;min-width:0">';
+    html += '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">ÁREA</div>';
+    html += '<select id="pa' + i + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card);-webkit-appearance:none">' + ao + '</select></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">FECHA</div>';
+    html += '<input type="date" id="pf' + i + '" value="' + (ev.fecha||'') + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">HORA</div>';
+    html += '<input type="time" id="ph' + i + '" value="' + (ev.hora||'') + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">¿PARA QUIÉN?</div>';
+    html += '<input id="pq' + i + '" value="' + esc(ev.quien||'') + '" placeholder="Opcional" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
+    html += '</div></div>';
+  }
+  html += '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cancelar</button><button class="sbtn p" onclick="importarEventos(' + evs.length + ')">Agregar seleccionados</button></div>';
+  document.getElementById('mcon').innerHTML = html;
 }
 
-function importarEventos(n){
-  let cnt=0;
-  for(let i=0;i<n;i++){
-    if(!document.getElementById(`ck${i}`)?.checked)continue;
-    const titulo=document.getElementById(`pt${i}`)?.value.trim();
-    if(!titulo)continue;
-    items.push({id:nextId++,titulo,area:document.getElementById(`pa${i}`)?.value||'pendientes',
-      fecha:document.getElementById(`pf${i}`)?.value||'',hora:document.getElementById(`ph${i}`)?.value||'',
-      quien:document.getElementById(`pq${i}`)?.value.trim()||'',detalle:'',prio:'normal',recur:'',dia:null,estado:'pendiente'});
+function importarEventos(n) {
+  var cnt = 0;
+  for (var i = 0; i < n; i++) {
+    var ck = document.getElementById('ck' + i);
+    if (!ck || !ck.checked) continue;
+    var pt = document.getElementById('pt' + i);
+    var titulo = pt ? pt.value.trim() : '';
+    if (!titulo) continue;
+    var pa = document.getElementById('pa' + i);
+    var pf = document.getElementById('pf' + i);
+    var ph = document.getElementById('ph' + i);
+    var pq = document.getElementById('pq' + i);
+    items.push({
+      id: nextId++, titulo: titulo,
+      area: pa ? pa.value : 'pendientes',
+      fecha: pf ? pf.value : '',
+      hora: ph ? ph.value : '',
+      quien: pq ? pq.value.trim() : '',
+      detalle: '', prio: 'normal', recur: '', dia: null, estado: 'pendiente'
+    });
     cnt++;
   }
-  guardar();cerrarModal();renderTab(tabAct);
-  toast(`✓ ${cnt} tarea${cnt!==1?'s':''} agregada${cnt!==1?'s':''}`);
+  guardar(); cerrarModal(); renderTab(tabAct);
+  toast('✓ ' + cnt + ' tarea' + (cnt !== 1 ? 's' : '') + ' agregada' + (cnt !== 1 ? 's' : ''));
 }
 
-function editarApiKey(afterSetup=false){
-  const saved=localStorage.getItem('anthropic_key')||'';
-  document.getElementById('mcon').innerHTML=`
-    <div class="stitle">🔑 Anthropic API Key</div>
-    <p style="color:var(--t3);font-size:13px;margin-bottom:14px">
-      Necesaria para extraer eventos de imágenes con IA.<br>
-      Conseguila gratis en <b>console.anthropic.com</b>
-    </p>
-    <div class="sfield"><label>API Key</label>
-      <input type="password" id="akInput" value="${esc(saved)}" placeholder="sk-ant-...">
-    </div>
-    <div class="sbtns">
-      <button class="sbtn s" onclick="${saved?'borrarApiKey()':'cerrarModal()'}">${saved?'Borrar key':'Cancelar'}</button>
-      <button class="sbtn p" onclick="guardarApiKey(${afterSetup})">Guardar</button>
-    </div>`;
+function editarApiKey(afterSetup) {
+  if (afterSetup === undefined) afterSetup = false;
+  var saved = localStorage.getItem('anthropic_key') || '';
+  var h = '<div class="stitle">🔑 Anthropic API Key</div>';
+  h += '<p style="color:var(--t3);font-size:13px;margin-bottom:14px">Necesaria para extraer eventos de imágenes con IA.<br>Conseguila en <b>console.anthropic.com</b></p>';
+  h += '<div class="sfield"><label>API Key</label><input type="password" id="akInput" value="' + esc(saved) + '" placeholder="sk-ant-..."></div>';
+  h += '<div class="sbtns">';
+  h += '<button class="sbtn s" onclick="' + (saved ? 'borrarApiKey()' : 'cerrarModal()') + '">' + (saved ? 'Borrar key' : 'Cancelar') + '</button>';
+  h += '<button class="sbtn p" onclick="guardarApiKey(' + afterSetup + ')">Guardar</button>';
+  h += '</div>';
+  document.getElementById('mcon').innerHTML = h;
   showSheet();
 }
 
-function guardarApiKey(procesarDespues=false){
-  const key=document.getElementById('akInput')?.value.trim();
-  if(!key){alert('Ingresá tu API key');return;}
-  localStorage.setItem('anthropic_key',key);
+function guardarApiKey(procesarDespues) {
+  if (procesarDespues === undefined) procesarDespues = false;
+  var akInput = document.getElementById('akInput');
+  var key = akInput ? akInput.value.trim() : '';
+  if (!key) { alert('Ingresá tu API key'); return; }
+  localStorage.setItem('anthropic_key', key);
   cerrarModal();
-  if(procesarDespues&&pendingFile)setTimeout(()=>procesarConClaude(pendingFile,key),100);
-  else{rConfig();toast('✓ API Key guardada');}
+  if (procesarDespues && pendingFile) {
+    setTimeout(function(){ procesarConClaude(pendingFile, key); }, 100);
+  } else {
+    rConfig(); toast('✓ API Key guardada');
+  }
 }
 
-function borrarApiKey(){
+function borrarApiKey() {
   localStorage.removeItem('anthropic_key');
-  cerrarModal();rConfig();toast('🗑 API Key eliminada');
+  cerrarModal(); rConfig(); toast('🗑 API Key eliminada');
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
-let _tt;
-function toast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('on');
-  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2200);
+var _tt;
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(_tt); _tt = setTimeout(function(){ el.classList.remove('on'); }, 2200);
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-try{
-  document.getElementById('hdrDay').textContent=fmtHoy();
-  rHoy();
-}catch(e){
-  document.getElementById('app').innerHTML=`<div style="padding:40px 20px;text-align:center;font-family:sans-serif">
-    <div style="font-size:40px;margin-bottom:16px">⚠️</div>
-    <div style="font-size:17px;font-weight:700;margin-bottom:8px">Error al iniciar</div>
-    <div style="font-size:13px;color:#666;margin-bottom:20px">${e.message}</div>
-    <button onclick="location.reload()" style="background:#007aff;color:#fff;border:none;padding:12px 28px;border-radius:12px;font-size:16px;font-weight:600">Reintentar</button>
-  </div>`;
-}
+// INIT
+document.getElementById('hdrDay').textContent = fmtHoy();
+rHoy();
 </script>
 </body>
 </html>
