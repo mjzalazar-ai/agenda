@@ -145,8 +145,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
     <div class="hdr-top">
       <div class="hdr-day" id="hdrDay">Hoy</div>
       <div class="hdr-btns">
+        <button class="hdr-btn" onclick="document.getElementById('imgInput').click()" title="Subir imagen">📷</button>
         <button class="hdr-btn" onclick="setTab('config')">⚙</button>
       </div>
+      <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="procesarImagen(event)">
     </div>
     <div class="search-wrap">
       <span style="color:var(--t3);font-size:14px">🔍</span>
@@ -210,7 +212,7 @@ function cargar(){
 function guardar(){try{localStorage.setItem(SK,JSON.stringify({items,nextId}));}catch(e){}}
 
 let {items,nextId}=cargar();
-let editId=null, tabAct='hoy', areaAct=null, searchQ='', vencOpen=false;
+let editId=null, tabAct='hoy', areaAct=null, searchQ='', vencOpen=false, pendingFile=null;
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 const hoy=()=>new Date().toISOString().slice(0,10);
@@ -337,7 +339,6 @@ function rHoy(){
     h2+=`<div class="slbl">Mañana (${man.length})</div>`+man.map(t=>tiHtml(t)).join('');
   }
 
-  // Quick summary by area
   const pendByArea=AREAS.map(a=>({a,n:items.filter(t=>t.area===a.id&&t.estado!=='completado').length})).filter(x=>x.n>0);
   if(pendByArea.length){
     h2+=`<div class="slbl">Resumen por área</div><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px">`;
@@ -441,6 +442,9 @@ function rConfig(){
   <div class="set-row" onclick="exportar()"><span class="set-row-l">⬇️ Exportar JSON</span><span class="set-row-r">›</span></div>
   <div class="set-row" onclick="document.getElementById('fInput').click()"><span class="set-row-l">⬆️ Importar JSON</span><span class="set-row-r">›</span></div>
   <input type="file" id="fInput" accept=".json" style="display:none" onchange="importar(event)">
+  <div class="slbl">Extracción desde imagen (IA)</div>
+  <div class="set-row" onclick="document.getElementById('imgInput').click()"><span class="set-row-l">📷 Subir imagen</span><span class="set-row-r">Extraer eventos</span></div>
+  <div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Anthropic API Key</span><span class="set-row-r">${localStorage.getItem('anthropic_key')?'✓ Configurada':'Sin configurar'}</span></div>
   <div class="slbl">Agregar rápido por área</div>
   ${AREAS.map(a=>`<div class="set-row" onclick="abrirModalArea('${a.id}')"><span class="set-row-l">${a.i} ${a.l}</span><span class="set-row-r">+ Agregar</span></div>`).join('')}
   <div style="height:10px"></div>`;
@@ -634,7 +638,6 @@ function importar(e){
       const d=JSON.parse(ev.target.result);
       const lista=d.items||d.tareas||d;
       if(!Array.isArray(lista))throw new Error();
-      // Migrate old format if needed
       items=lista.map(t=>({
         id:t.id,
         titulo:t.titulo||t.nombre||'Sin título',
@@ -653,6 +656,155 @@ function importar(e){
     }catch{toast('⚠️ Archivo no válido');}
   };
   r.readAsText(file);e.target.value='';
+}
+
+// ── IMAGEN + IA ───────────────────────────────────────────────────────────────
+
+function procesarImagen(e){
+  const file=e.target.files[0]; if(!file)return; e.target.value='';
+  pendingFile=file;
+  const key=localStorage.getItem('anthropic_key');
+  if(!key){ editarApiKey(true); return; }
+  procesarConClaude(file,key);
+}
+
+async function procesarConClaude(file,apiKey){
+  document.getElementById('mcon').innerHTML=`
+    <div style="text-align:center;padding:32px 16px">
+      <div style="font-size:44px;margin-bottom:12px">🔍</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando imagen…</div>
+      <div style="font-size:13px;color:var(--t3)">Buscando fechas, horarios y eventos</div>
+    </div>`;
+  showSheet();
+  try{
+    const b64=await fileToB64(file);
+    const mt=file.type||'image/jpeg';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:1500,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:mt,data:b64}},
+            {type:'text',text:`Hoy es ${hoy()}. Analizá esta imagen: puede ser un horario de clases, turno médico, agenda escolar, programa de eventos, recordatorio o cualquier calendario.\nExtraé TODOS los eventos, citas, clases, fechas de entrega o tareas que veas.\nRespondé ÚNICAMENTE con un JSON array válido, sin texto adicional, sin markdown:\n[{"titulo":"descripción corta en español","area":"una de: colegio|hogar|compras|salud|maestria|ingles|pagos|remedios|pendientes|tramites|eventos|gimnasio","fecha":"YYYY-MM-DD o null","hora":"HH:MM o null","quien":"persona si se menciona, sino vacío"}]\nSi no encontrás nada respondé: []`}
+          ]
+        }]
+      })
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Error ${res.status}`);}
+    const data=await res.json();
+    let txt=data.content[0].text.trim();
+    if(txt.includes('```'))txt=txt.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
+    const evs=JSON.parse(txt);
+    if(!Array.isArray(evs))throw new Error('Respuesta inesperada');
+    mostrarPreviewEventos(evs);
+  }catch(err){
+    document.getElementById('mcon').innerHTML=`
+      <div class="stitle">⚠️ Error</div>
+      <p style="color:var(--t3);font-size:14px;margin-bottom:16px">${esc(String(err.message))}</p>
+      <p style="color:var(--t3);font-size:12px;margin-bottom:16px">Verificá tu API key en Ajustes o intentá con otra imagen.</p>
+      <div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>`;
+  }
+}
+
+function fileToB64(file){
+  return new Promise((ok,fail)=>{
+    const r=new FileReader();
+    r.onload=e=>ok(e.target.result.split(',')[1]);
+    r.onerror=fail;
+    r.readAsDataURL(file);
+  });
+}
+
+function mostrarPreviewEventos(evs){
+  if(!evs.length){
+    document.getElementById('mcon').innerHTML=`
+      <div class="stitle">Sin resultados</div>
+      <p style="color:var(--t3);font-size:14px;margin-bottom:16px">No se encontraron eventos en la imagen. Probá con una foto más clara o con mejor iluminación.</p>
+      <div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>`;
+    return;
+  }
+  let html=`<div class="stitle">📋 ${evs.length} evento${evs.length>1?'s':''} encontrado${evs.length>1?'s':''}</div>
+  <p style="color:var(--t3);font-size:12px;margin-bottom:12px">Editá los datos si es necesario y seleccioná cuáles agregar.</p>`;
+  evs.forEach((ev,i)=>{
+    const ao=AREAS.map(a=>`<option value="${a.id}"${(ev.area||'pendientes')===a.id?' selected':''}>${a.i} ${a.l}</option>`).join('');
+    html+=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <input type="checkbox" id="ck${i}" checked style="width:18px;height:18px;cursor:pointer;flex-shrink:0">
+        <input id="pt${i}" value="${esc(ev.titulo||'')}" style="flex:1;border:none;background:none;font-size:14px;font-weight:600;color:var(--t1);outline:none;min-width:0">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">ÁREA</div>
+          <select id="pa${i}" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card);-webkit-appearance:none">${ao}</select></div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">FECHA</div>
+          <input type="date" id="pf${i}" value="${ev.fecha||''}" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">HORA</div>
+          <input type="time" id="ph${i}" value="${ev.hora||''}" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">¿PARA QUIÉN?</div>
+          <input id="pq${i}" value="${esc(ev.quien||'')}" placeholder="Opcional" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>
+      </div>
+    </div>`;
+  });
+  html+=`<div class="sbtns">
+    <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
+    <button class="sbtn p" onclick="importarEventos(${evs.length})">Agregar seleccionados</button>
+  </div>`;
+  document.getElementById('mcon').innerHTML=html;
+}
+
+function importarEventos(n){
+  let cnt=0;
+  for(let i=0;i<n;i++){
+    if(!document.getElementById(`ck${i}`)?.checked)continue;
+    const titulo=document.getElementById(`pt${i}`)?.value.trim();
+    if(!titulo)continue;
+    items.push({id:nextId++,titulo,area:document.getElementById(`pa${i}`)?.value||'pendientes',
+      fecha:document.getElementById(`pf${i}`)?.value||'',hora:document.getElementById(`ph${i}`)?.value||'',
+      quien:document.getElementById(`pq${i}`)?.value.trim()||'',detalle:'',prio:'normal',recur:'',dia:null,estado:'pendiente'});
+    cnt++;
+  }
+  guardar();cerrarModal();renderTab(tabAct);
+  toast(`✓ ${cnt} tarea${cnt!==1?'s':''} agregada${cnt!==1?'s':''}`);
+}
+
+function editarApiKey(afterSetup=false){
+  const saved=localStorage.getItem('anthropic_key')||'';
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">🔑 Anthropic API Key</div>
+    <p style="color:var(--t3);font-size:13px;margin-bottom:14px">
+      Necesaria para extraer eventos de imágenes con IA.<br>
+      Conseguila gratis en <b>console.anthropic.com</b>
+    </p>
+    <div class="sfield"><label>API Key</label>
+      <input type="password" id="akInput" value="${esc(saved)}" placeholder="sk-ant-...">
+    </div>
+    <div class="sbtns">
+      <button class="sbtn s" onclick="${saved?'borrarApiKey()':'cerrarModal()}">${saved?'Borrar key':'Cancelar'}</button>
+      <button class="sbtn p" onclick="guardarApiKey(${afterSetup})">Guardar</button>
+    </div>`;
+  showSheet();
+}
+
+function guardarApiKey(procesarDespues=false){
+  const key=document.getElementById('akInput')?.value.trim();
+  if(!key){alert('Ingresá tu API key');return;}
+  localStorage.setItem('anthropic_key',key);
+  cerrarModal();
+  if(procesarDespues&&pendingFile)setTimeout(()=>procesarConClaude(pendingFile,key),100);
+  else{rConfig();toast('✓ API Key guardada');}
+}
+
+function borrarApiKey(){
+  localStorage.removeItem('anthropic_key');
+  cerrarModal();rConfig();toast('🗑 API Key eliminada');
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
