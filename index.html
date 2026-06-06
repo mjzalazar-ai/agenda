@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mi Agenda">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Mi Agenda</title>
 <style>
 :root {
@@ -31,7 +34,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 
 /* Views */
 #views{flex:1;overflow:hidden;position:relative;}
-.view{position:absolute;inset:0;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch;}
+.view{position:absolute;top:0;right:0;bottom:0;left:0;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch;}
 .view.active{display:block;}
 .vcont{padding:10px 16px calc(90px + var(--safeB));}
 
@@ -104,7 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 .ntab.active .nl{color:var(--blue);}
 
 /* Modal overlay + sheet */
-#moverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;}
+#moverlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.4);z-index:200;display:none;}
 #moverlay.on{display:block;}
 #msheet{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + var(--safeB));max-height:93vh;overflow-y:auto;z-index:201;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
 #msheet.on{transform:none;}
@@ -202,7 +205,7 @@ const AREAS = [
   {id:'eventos',   i:'📅', l:'Eventos',    bg:'#faf5ff', fg:'#7e22ce'},
   {id:'gimnasio',  i:'🏋️', l:'Gimnasio',  bg:'#f0fdf4', fg:'#15803d'},
 ];
-const AM = Object.fromEntries(AREAS.map(a=>[a.id,a]));
+const AM = AREAS.reduce((o,a)=>{o[a.id]=a;return o;},{});
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 function cargar(){
@@ -377,7 +380,7 @@ function rAreas(){
 function irArea(id){
   areaAct=id;
   if(tabAct!=='areas'){setTab('areas');}
-  else{rAreaDet();document.getElementById('hdrDay').textContent=AM[id]?.l||id;}
+  else{rAreaDet();document.getElementById('hdrDay').textContent=AM[id]&&AM[id].l||id;}
 }
 
 function rAreaDet(){
@@ -481,7 +484,7 @@ function rSearch(){
     t.titulo.toLowerCase().includes(q)||
     (t.detalle||'').toLowerCase().includes(q)||
     (t.quien||'').toLowerCase().includes(q)||
-    (AM[t.area]?.l||'').toLowerCase().includes(q)
+    (AM[t.area]&&AM[t.area].l||'').toLowerCase().includes(q)
   );
   let h=`<div class="slbl">${res.length} resultado${res.length!==1?'s':''} para "${esc(q)}"</div>`;
   h+=res.length?res.map(t=>tiHtml(t)).join(''):'<div class="empty">No se encontró nada.</div>';
@@ -521,7 +524,7 @@ function abrirModal(def=''){
 function abrirModalArea(id){cerrarModal();setTimeout(()=>abrirModal(id),60);}
 function abrirEditar(id){
   editId=id;const t=items.find(x=>x.id===id);if(!t)return;
-  mostrarForm({...t,dia:t.dia||'',recur:t.recur||''});
+  mostrarForm(Object.assign({},t,{dia:t.dia||'',recur:t.recur||''}));
 }
 
 function mostrarForm(f){
@@ -577,35 +580,43 @@ function mostrarForm(f){
       <button class="sbtn p" onclick="guardarForm()">Guardar</button>
     </div>`;
   showSheet();
-  setTimeout(()=>document.getElementById('fT')?.focus(),250);
+  setTimeout(()=>{var el=document.getElementById('fT');if(el)el.focus();},250);
 }
 
 function onRecur(){
-  const r=document.getElementById('fR')?.value;
+  const r=document.getElementById('fR')&&document.getElementById('fR').value;
   const w=document.getElementById('fDW');
   if(w)w.style.display=r==='mensual'?'block':'none';
 }
 
 function guardarForm(){
-  const titulo=document.getElementById('fT')?.value.trim();
+  const fT=document.getElementById('fT');
+  const titulo=fT&&fT.value.trim();
   if(!titulo){alert('El nombre es obligatorio.');return;}
-  const recur=document.getElementById('fR')?.value||'';
+  const fR=document.getElementById('fR');
+  const recur=fR&&fR.value||'';
   const dEl=document.getElementById('fD');
   const eEl=document.getElementById('fE');
+  const fN=document.getElementById('fN');
+  const fA=document.getElementById('fA');
+  const fP=document.getElementById('fP');
+  const fF=document.getElementById('fF');
+  const fH=document.getElementById('fH');
+  const fQ=document.getElementById('fQ');
   const obj={
     titulo,
-    detalle:document.getElementById('fN')?.value.trim()||'',
-    area:document.getElementById('fA')?.value||'pendientes',
-    prio:document.getElementById('fP')?.value||'normal',
-    fecha:document.getElementById('fF')?.value||'',
-    hora:document.getElementById('fH')?.value||'',
+    detalle:fN&&fN.value.trim()||'',
+    area:fA&&fA.value||'pendientes',
+    prio:fP&&fP.value||'normal',
+    fecha:fF&&fF.value||'',
+    hora:fH&&fH.value||'',
     recur,
-    dia:recur==='mensual'&&dEl?.value?parseInt(dEl.value):null,
-    quien:document.getElementById('fQ')?.value.trim()||'',
+    dia:recur==='mensual'&&dEl&&dEl.value?parseInt(dEl.value):null,
+    quien:fQ&&fQ.value.trim()||'',
     estado:eEl?eEl.value:'pendiente',
   };
-  if(editId)items=items.map(t=>t.id===editId?{...t,...obj}:t);
-  else items.push({id:nextId++,...obj});
+  if(editId)items=items.map(t=>t.id===editId?Object.assign({},t,obj):t);
+  else items.push(Object.assign({id:nextId++},obj));
   guardar();cerrarModal();renderTab(tabAct);
   toast(editId?'✓ Actualizado':'✓ Guardado');
 }
@@ -613,7 +624,7 @@ function guardarForm(){
 // ── SHEET ─────────────────────────────────────────────────────────────────────
 function showSheet(){
   document.getElementById('moverlay').classList.add('on');
-  requestAnimationFrame(()=>document.getElementById('msheet').classList.add('on'));
+  requestAnimationFrame(function(){document.getElementById('msheet').classList.add('on');});
 }
 function cerrarModal(){
   document.getElementById('moverlay').classList.remove('on');
@@ -633,16 +644,16 @@ function exportar(){
 function importar(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
-  r.onload=ev=>{
+  r.onload=function(ev){
     try{
       const d=JSON.parse(ev.target.result);
       const lista=d.items||d.tareas||d;
       if(!Array.isArray(lista))throw new Error();
-      items=lista.map(t=>({
+      items=lista.map(function(t){return{
         id:t.id,
         titulo:t.titulo||t.nombre||'Sin título',
         detalle:t.detalle||t.desc||'',
-        area:t.area||(t.imp?'pendientes':'pendientes'),
+        area:t.area||'pendientes',
         prio:t.prio||(t.imp==='alta'?'alta':t.imp==='baja'?'baja':'normal'),
         fecha:t.fecha||'',
         hora:t.hora||'',
@@ -650,10 +661,10 @@ function importar(e){
         dia:t.dia||null,
         quien:t.quien||t.resp||'',
         estado:t.estado||'pendiente',
-      }));
-      nextId=items.reduce((m,t)=>Math.max(m,t.id||0),0)+1;
-      guardar();renderTab(tabAct);toast(`✓ ${items.length} tareas importadas`);
-    }catch{toast('⚠️ Archivo no válido');}
+      };});
+      nextId=items.reduce(function(m,t){return Math.max(m,t.id||0);},0)+1;
+      guardar();renderTab(tabAct);toast('✓ '+items.length+' tareas importadas');
+    }catch(err){toast('⚠️ Archivo no válido');}
   };
   r.readAsText(file);e.target.value='';
 }
@@ -699,7 +710,7 @@ async function procesarConClaude(file,apiKey){
         }]
       })
     });
-    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Error ${res.status}`);}
+    if(!res.ok){const e=await res.json();throw new Error(e.error&&e.error.message||'Error '+res.status);}
     const data=await res.json();
     let txt=data.content[0].text.trim();
     if(txt.includes('```'))txt=txt.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
@@ -716,9 +727,9 @@ async function procesarConClaude(file,apiKey){
 }
 
 function fileToB64(file){
-  return new Promise((ok,fail)=>{
+  return new Promise(function(ok,fail){
     const r=new FileReader();
-    r.onload=e=>ok(e.target.result.split(',')[1]);
+    r.onload=function(e){ok(e.target.result.split(',')[1]);};
     r.onerror=fail;
     r.readAsDataURL(file);
   });
@@ -734,7 +745,7 @@ function mostrarPreviewEventos(evs){
   }
   let html=`<div class="stitle">📋 ${evs.length} evento${evs.length>1?'s':''} encontrado${evs.length>1?'s':''}</div>
   <p style="color:var(--t3);font-size:12px;margin-bottom:12px">Editá los datos si es necesario y seleccioná cuáles agregar.</p>`;
-  evs.forEach((ev,i)=>{
+  evs.forEach(function(ev,i){
     const ao=AREAS.map(a=>`<option value="${a.id}"${(ev.area||'pendientes')===a.id?' selected':''}>${a.i} ${a.l}</option>`).join('');
     html+=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -763,19 +774,26 @@ function mostrarPreviewEventos(evs){
 function importarEventos(n){
   let cnt=0;
   for(let i=0;i<n;i++){
-    if(!document.getElementById(`ck${i}`)?.checked)continue;
-    const titulo=document.getElementById(`pt${i}`)?.value.trim();
+    const ck=document.getElementById('ck'+i);
+    if(!ck||!ck.checked)continue;
+    const pt=document.getElementById('pt'+i);
+    const titulo=pt&&pt.value.trim();
     if(!titulo)continue;
-    items.push({id:nextId++,titulo,area:document.getElementById(`pa${i}`)?.value||'pendientes',
-      fecha:document.getElementById(`pf${i}`)?.value||'',hora:document.getElementById(`ph${i}`)?.value||'',
-      quien:document.getElementById(`pq${i}`)?.value.trim()||'',detalle:'',prio:'normal',recur:'',dia:null,estado:'pendiente'});
+    const pa=document.getElementById('pa'+i);
+    const pf=document.getElementById('pf'+i);
+    const ph=document.getElementById('ph'+i);
+    const pq=document.getElementById('pq'+i);
+    items.push({id:nextId++,titulo,area:pa&&pa.value||'pendientes',
+      fecha:pf&&pf.value||'',hora:ph&&ph.value||'',
+      quien:pq&&pq.value.trim()||'',detalle:'',prio:'normal',recur:'',dia:null,estado:'pendiente'});
     cnt++;
   }
   guardar();cerrarModal();renderTab(tabAct);
-  toast(`✓ ${cnt} tarea${cnt!==1?'s':''} agregada${cnt!==1?'s':''}`);
+  toast('✓ '+cnt+' tarea'+(cnt!==1?'s':'')+' agregada'+(cnt!==1?'s':''));
 }
 
-function editarApiKey(afterSetup=false){
+function editarApiKey(afterSetup){
+  if(afterSetup===undefined)afterSetup=false;
   const saved=localStorage.getItem('anthropic_key')||'';
   document.getElementById('mcon').innerHTML=`
     <div class="stitle">🔑 Anthropic API Key</div>
@@ -793,12 +811,14 @@ function editarApiKey(afterSetup=false){
   showSheet();
 }
 
-function guardarApiKey(procesarDespues=false){
-  const key=document.getElementById('akInput')?.value.trim();
+function guardarApiKey(procesarDespues){
+  if(procesarDespues===undefined)procesarDespues=false;
+  const akInput=document.getElementById('akInput');
+  const key=akInput&&akInput.value.trim();
   if(!key){alert('Ingresá tu API key');return;}
   localStorage.setItem('anthropic_key',key);
   cerrarModal();
-  if(procesarDespues&&pendingFile)setTimeout(()=>procesarConClaude(pendingFile,key),100);
+  if(procesarDespues&&pendingFile)setTimeout(function(){procesarConClaude(pendingFile,key);},100);
   else{rConfig();toast('✓ API Key guardada');}
 }
 
@@ -808,16 +828,25 @@ function borrarApiKey(){
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
-let _tt;
+var _tt;
 function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg;el.classList.add('on');
-  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2200);
+  clearTimeout(_tt);_tt=setTimeout(function(){el.classList.remove('on');},2200);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-document.getElementById('hdrDay').textContent=fmtHoy();
-rHoy();
+try{
+  document.getElementById('hdrDay').textContent=fmtHoy();
+  rHoy();
+}catch(e){
+  document.getElementById('app').innerHTML='<div style="padding:40px 20px;text-align:center;font-family:sans-serif">'+
+    '<div style="font-size:40px;margin-bottom:16px">⚠️</div>'+
+    '<div style="font-size:17px;font-weight:700;margin-bottom:8px">Error al iniciar</div>'+
+    '<div style="font-size:13px;color:#666;margin-bottom:20px">'+e.message+'</div>'+
+    '<button onclick="location.reload()" style="background:#007aff;color:#fff;border:none;padding:12px 28px;border-radius:12px;font-size:16px;font-weight:600">Reintentar</button>'+
+    '</div>';
+}
 </script>
 </body>
 </html>
