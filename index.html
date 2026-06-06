@@ -827,17 +827,34 @@ function borrarApiKey(){
 }
 
 // ── VIAJES ────────────────────────────────────────────────────────────────────
-let tripData=null, idaVuelta=true;
+let tripData=null, idaVuelta=true, tipoViaje='vuelo';
 
 function rViajes(){
   document.getElementById('c-viajes').innerHTML=buildViajesForm();
-  if(!idaVuelta)document.getElementById('wFechaVuelta').style.display='none';
 }
 
 function buildViajesForm(){
+  const esCrucero=tipoViaje==='crucero';
+  const resActual=tripData?(esCrucero?buildResultadosCrucero(tripData):buildResultados(tripData)):'';
   return`
-    <div class="slbl">Tipo de viaje</div>
-    <div class="trip-toggle">
+    <div class="slbl">¿Qué buscás?</div>
+    <div class="trip-toggle" style="margin-bottom:16px">
+      <button id="btnVuelo" class="${!esCrucero?'active':''}" onclick="setTipoViaje('vuelo')">✈️ Vuelo</button>
+      <button id="btnCrucero" class="${esCrucero?'active':''}" onclick="setTipoViaje('crucero')">🚢 Crucero</button>
+    </div>
+    ${esCrucero?buildCruceroForm():buildVueloForm()}
+    <div id="viajesResultados" style="margin-top:14px">${resActual}</div>`;
+}
+
+function setTipoViaje(tipo){
+  tipoViaje=tipo; tripData=null;
+  rViajes();
+}
+
+function buildVueloForm(){
+  return`
+    <div class="slbl">Tipo de trayecto</div>
+    <div class="trip-toggle" style="margin-bottom:14px">
       <button id="btnIV" class="${idaVuelta?'active':''}" onclick="setTripType(true)">⇄ Ida y vuelta</button>
       <button id="btnSI" class="${!idaVuelta?'active':''}" onclick="setTripType(false)">→ Solo ida</button>
     </div>
@@ -852,7 +869,7 @@ function buildViajesForm(){
         <div class="sfield"><label>Fecha de ida</label>
           <input type="date" id="tFechaIda" value="${tripData?.fechaIda||''}">
         </div>
-        <div class="sfield" id="wFechaVuelta"><label>Fecha de vuelta</label>
+        <div class="sfield" id="wFechaVuelta"${!idaVuelta?' style="display:none"':''}><label>Fecha de vuelta</label>
           <input type="date" id="tFechaVuelta" value="${tripData?.fechaVuelta||''}">
         </div>
       </div>
@@ -872,8 +889,56 @@ function buildViajesForm(){
         </div>
       </div>
     </div>
-    <button class="sbtn p" style="width:100%;border-radius:12px" onclick="buscarViajes()">🔍 Comparar precios</button>
-    <div id="viajesResultados" style="margin-top:14px">${tripData?buildResultados(tripData):''}</div>`;
+    <button class="sbtn p" style="width:100%;border-radius:12px" onclick="buscarViajes()">🔍 Comparar vuelos</button>`;
+}
+
+function buildCruceroForm(){
+  const DESTINOS=[
+    'Caribe','Mediterráneo','Norte de Europa / Fiordos','Alaska',
+    'Sudamérica / Antártida','Asia','Islas Canarias','Australia / Pacífico','Vuelta al mundo'
+  ];
+  return`
+    <div class="viajes-form">
+      <div class="sfield"><label>Puerto de salida</label>
+        <input id="cPuerto" placeholder="Ej: Buenos Aires, Montevideo, Barcelona…" value="${esc(tripData?.puerto||'')}">
+      </div>
+      <div class="sfield"><label>Destino / región</label>
+        <select id="cDestino">
+          <option value="">Seleccioná un destino</option>
+          ${DESTINOS.map(d=>`<option value="${d}"${tripData?.destino===d?' selected':''}>${d}</option>`).join('')}
+        </select>
+      </div>
+      <div class="frow">
+        <div class="sfield"><label>Fecha de salida</label>
+          <input type="date" id="cFecha" value="${tripData?.fechaIda||''}">
+        </div>
+        <div class="sfield"><label>Duración</label>
+          <select id="cNoches">
+            <option value="">Cualquiera</option>
+            <option value="3-5"${tripData?.noches==='3-5'?' selected':''}>3 a 5 noches</option>
+            <option value="6-8"${tripData?.noches==='6-8'?' selected':''}>6 a 8 noches</option>
+            <option value="9-13"${tripData?.noches==='9-13'?' selected':''}>9 a 13 noches</option>
+            <option value="14+"${tripData?.noches==='14+'?' selected':''}>14+ noches</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="sfield"><label>Pasajeros</label>
+          <select id="cPax">
+            ${[1,2,3,4,5,6].map(n=>`<option value="${n}"${(tripData?.pax||'2')===String(n)?' selected':''}>${n} persona${n>1?'s':''}</option>`).join('')}
+          </select>
+        </div>
+        <div class="sfield"><label>Tipo de cabina</label>
+          <select id="cCabina">
+            <option value="interior"${(!tripData?.cabina||tripData?.cabina==='interior')?' selected':''}>Interior</option>
+            <option value="oceanview"${tripData?.cabina==='oceanview'?' selected':''}>Vista al mar</option>
+            <option value="balcony"${tripData?.cabina==='balcony'?' selected':''}>Balcón</option>
+            <option value="suite"${tripData?.cabina==='suite'?' selected':''}>Suite</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="sbtn p" style="width:100%;border-radius:12px;background:linear-gradient(135deg,#0055A4,#00A698)" onclick="buscarCruceros()">🚢 Comparar cruceros</button>`;
 }
 
 function setTripType(rt){
@@ -894,9 +959,23 @@ function buscarViajes(){
   if(!origen||!destino){toast('⚠️ Ingresá origen y destino');return;}
   if(!fechaIda){toast('⚠️ Ingresá la fecha de ida');return;}
   if(idaVuelta&&!fechaVuelta){toast('⚠️ Ingresá la fecha de vuelta');return;}
-  tripData={origen,destino,fechaIda,fechaVuelta,pax,clase};
+  tripData={tipo:'vuelo',origen,destino,fechaIda,fechaVuelta,pax,clase};
   const res=document.getElementById('viajesResultados');
   res.innerHTML=buildResultados(tripData);
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buscarCruceros(){
+  const puerto=document.getElementById('cPuerto')?.value.trim()||'';
+  const destino=document.getElementById('cDestino')?.value;
+  const fechaIda=document.getElementById('cFecha')?.value||'';
+  const noches=document.getElementById('cNoches')?.value||'';
+  const pax=document.getElementById('cPax')?.value||'2';
+  const cabina=document.getElementById('cCabina')?.value||'interior';
+  if(!destino){toast('⚠️ Seleccioná un destino de crucero');return;}
+  tripData={tipo:'crucero',puerto,destino,fechaIda,noches,pax,cabina};
+  const res=document.getElementById('viajesResultados');
+  res.innerHTML=buildResultadosCrucero(tripData);
   res.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -904,37 +983,60 @@ function buildResultados(d){
   const claseLabel={economy:'Económica',premium_economy:'Prem. Económica',business:'Ejecutiva',first:'Primera'};
   const ori=encodeURIComponent(d.origen), dest=encodeURIComponent(d.destino);
   const oriS=d.origen.toLowerCase().replace(/\s+/g,'-'), destS=d.destino.toLowerCase().replace(/\s+/g,'-');
-  const fI=d.fechaIda, fV=d.fechaVuelta;
+  const fI=d.fechaIda, fV=d.fechaVuelta, pax=d.pax, clase=d.clase;
   const fIShort=fI.replace(/-/g,''), fVShort=fV?fV.replace(/-/g,''):'';
-  const pax=d.pax, clase=d.clase;
 
   const sites=[
     {icon:'🌐',name:'Google Flights',desc:'Comparador de Google — el más completo',
-     url:`https://www.google.com/travel/flights?q=vuelos+de+${ori}+a+${dest}+${fI}`,
-     color:'#4285F4'},
+     url:`https://www.google.com/travel/flights?q=vuelos+de+${ori}+a+${dest}+${fI}`,color:'#4285F4'},
     {icon:'🛫',name:'Despegar',desc:'El más popular en América Latina',
-     url:`https://www.despegar.com/vuelos/resultado/1-${pax}-0-0-ES/${ori}/${dest}/${fI}${fV?'/'+fV:''}/`,
-     color:'#E8420A'},
+     url:`https://www.despegar.com/vuelos/resultado/1-${pax}-0-0-ES/${ori}/${dest}/${fI}${fV?'/'+fV:''}/`,color:'#E8420A'},
     {icon:'🔍',name:'Kayak',desc:'Compara cientos de sitios de viajes',
-     url:`https://www.kayak.com/flights/${ori}-${dest}/${fI}${fV?'/'+fV:''}/${pax}adults?cabin=${clase}`,
-     color:'#FF690F'},
+     url:`https://www.kayak.com/flights/${ori}-${dest}/${fI}${fV?'/'+fV:''}/${pax}adults?cabin=${clase}`,color:'#FF690F'},
     {icon:'✈️',name:'Skyscanner',desc:'Búsqueda global de los mejores precios',
-     url:`https://www.skyscanner.com/transport/flights/${oriS}/${destS}/${fIShort}${fVShort?'/'+fVShort:''}/?adults=${pax}&cabinclass=${clase}`,
-     color:'#00A698'},
+     url:`https://www.skyscanner.com/transport/flights/${oriS}/${destS}/${fIShort}${fVShort?'/'+fVShort:''}/?adults=${pax}&cabinclass=${clase}`,color:'#00A698'},
     {icon:'🌍',name:'Momondo',desc:'Inspírate y encontrá deals únicos',
-     url:`https://www.momondo.com/flights/${ori}-${dest}/${fI}${fV?'/'+fV:''}?adults=${pax}&cabin=${clase[0]}`,
-     color:'#6A4C93'},
+     url:`https://www.momondo.com/flights/${ori}-${dest}/${fI}${fV?'/'+fV:''}?adults=${pax}&cabin=${clase[0]}`,color:'#6A4C93'},
   ];
 
   const resumen=`${d.origen} → ${d.destino}${d.fechaVuelta?' (ida y vuelta)':' (solo ida)'}`;
   const fechaStr=`${fmtF(d.fechaIda)}${d.fechaVuelta?' — '+fmtF(d.fechaVuelta):''}`;
+  return buildSiteCards('✈️',resumen,fechaStr,`${pax} pasajero${Number(pax)>1?'s':''} · ${claseLabel[clase]||'Económica'}`,sites);
+}
 
+function buildResultadosCrucero(d){
+  const cabinaLabel={interior:'Interior',oceanview:'Vista al mar',balcony:'Balcón',suite:'Suite'};
+  const destEnc=encodeURIComponent(d.destino), pax=d.pax;
+
+  const sites=[
+    {icon:'🚢',name:'MSC Cruceros',desc:'El más popular en América Latina y Europa',
+     url:`https://www.msccruises.com.ar/plan-a-cruise/find-a-cruise.html`,color:'#003087'},
+    {icon:'👑',name:'Royal Caribbean',desc:'Flota moderna con entretenimiento de lujo',
+     url:`https://www.royalcaribbean.com/cruise-search?destinationName=${destEnc}&numberOfGuests=${pax}`,color:'#0055A4'},
+    {icon:'⚓',name:'Costa Cruceros',desc:'Estilo mediterráneo, rutas premium',
+     url:`https://www.costacruises.com.ar/find-your-cruise.html`,color:'#C8962A'},
+    {icon:'🌊',name:'Norwegian Cruise Line',desc:'Libertad a bordo — Freestyle Cruising',
+     url:`https://www.ncl.com/cruise-search?destinationId=${destEnc}&guestCount=${pax}`,color:'#0072BB'},
+    {icon:'🎉',name:'Carnival',desc:'Diversión y entretenimiento para toda la familia',
+     url:`https://www.carnival.com/cruise-search?dest=${destEnc}&numGuests=${pax}`,color:'#E31837'},
+    {icon:'🛫',name:'Despegar Cruceros',desc:'Compará cruceros con precio garantizado',
+     url:`https://www.despegar.com/cruceros/`,color:'#E8420A'},
+    {icon:'🌐',name:'CrucerosFelices',desc:'Especialistas en cruceros para Latinoamérica',
+     url:`https://www.crucerosfelices.com/`,color:'#2E86AB'},
+  ];
+
+  const resumen=`Crucero por ${d.destino}${d.puerto?' desde '+d.puerto:''}`;
+  const fechaStr=d.fechaIda?fmtF(d.fechaIda):'Fecha flexible';
+  const detalle=`${d.noches?d.noches+' noches · ':''}${pax} persona${Number(pax)>1?'s':''} · Cabina ${cabinaLabel[d.cabina]||'Interior'}`;
+  return buildSiteCards('🚢',resumen,fechaStr,detalle,sites);
+}
+
+function buildSiteCards(emoji,resumen,fechaStr,detalle,sites){
   let h=`<div class="trip-summary">
-    <div style="font-size:17px;font-weight:700;margin-bottom:4px">✈️ ${esc(resumen)}</div>
-    <div style="font-size:13px;opacity:.85">📅 ${fechaStr} · 👤 ${pax} pasajero${Number(pax)>1?'s':''} · ${esc(claseLabel[clase]||'Económica')}</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:4px">${emoji} ${esc(resumen)}</div>
+    <div style="font-size:13px;opacity:.85">📅 ${fechaStr} · ${esc(detalle)}</div>
   </div>
   <div class="slbl">Comparar precios en</div>`;
-
   for(const s of sites){
     h+=`<div class="site-card">
       <div class="site-card-l">
@@ -944,16 +1046,11 @@ function buildResultados(d){
       <button class="site-btn" style="background:${s.color}" onclick="window.open(${JSON.stringify(s.url)},'_blank')">Ver →</button>
     </div>`;
   }
-
   const hasKey=!!localStorage.getItem('anthropic_key');
   h+=`<div class="slbl">Más opciones</div>`;
-  if(hasKey){
-    h+=`<div class="set-row" onclick="analizarViaje()"><span class="set-row-l">🤖 Analizar con IA</span><span class="set-row-r">Consejos y tips ›</span></div>`;
-  }
+  if(hasKey) h+=`<div class="set-row" onclick="analizarViaje()"><span class="set-row-l">🤖 Analizar con IA</span><span class="set-row-r">Consejos y tips ›</span></div>`;
   h+=`<div class="set-row" onclick="guardarViajeEnAgenda()"><span class="set-row-l">📅 Guardar en agenda</span><span class="set-row-r">Como evento ›</span></div>`;
-  if(!hasKey){
-    h+=`<div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Análisis con IA</span><span class="set-row-r">Configurar key ›</span></div>`;
-  }
+  if(!hasKey) h+=`<div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Análisis con IA</span><span class="set-row-r">Configurar key ›</span></div>`;
   h+=`<div style="height:10px"></div>`;
   return h;
 }
@@ -961,47 +1058,56 @@ function buildResultados(d){
 async function analizarViaje(){
   const key=localStorage.getItem('anthropic_key');
   if(!key||!tripData)return;
+  const esCrucero=tripData.tipo==='crucero';
+  const emoji=esCrucero?'🚢':'✈️';
+  const label=esCrucero?'crucero':'viaje';
   document.getElementById('mcon').innerHTML=`
     <div style="text-align:center;padding:32px 16px">
-      <div style="font-size:44px;margin-bottom:12px">✈️</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando viaje…</div>
-      <div style="font-size:13px;color:var(--t3)">Buscando consejos para tu ruta</div>
+      <div style="font-size:44px;margin-bottom:12px">${emoji}</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando ${label}…</div>
+      <div style="font-size:13px;color:var(--t3)">Buscando consejos para tu búsqueda</div>
     </div>`;
   showSheet();
   try{
     const d=tripData;
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true',
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:600,
-        messages:[{role:'user',content:`Viaje de ${d.origen} a ${d.destino}. Ida: ${d.fechaIda}${d.fechaVuelta?', vuelta: '+d.fechaVuelta:' (solo ida)'}. ${d.pax} pasajero(s), clase ${d.clase}.
+    const prompt=esCrucero
+      ?`Crucero por ${d.destino}${d.puerto?' saliendo desde '+d.puerto:''}.${d.fechaIda?' Fecha: '+d.fechaIda+'.':''} ${d.noches?'Duración: '+d.noches+' noches.':''} ${d.pax} persona(s), cabina ${d.cabina}.
 
-Dame consejos breves y útiles en español usando viñetas •:
+Dame consejos breves en español usando viñetas •:
+• Navieras recomendadas para esta ruta y por qué
+• Mejor época del año para este destino
+• Tips para conseguir el mejor precio en cruceros
+• Qué incluye y qué no suele incluir el precio
+• 1 tip práctico para disfrutar el crucero
+
+Máximo 160 palabras, muy conciso.`
+      :`Vuelo de ${d.origen} a ${d.destino}. Ida: ${d.fechaIda}${d.fechaVuelta?', vuelta: '+d.fechaVuelta:' (solo ida)'}. ${d.pax} pasajero(s), clase ${d.clase}.
+
+Dame consejos breves en español usando viñetas •:
 • Aerolíneas principales en esta ruta
 • Mejor momento para comprar el boleto
 • Tips para conseguir el mejor precio
 • 1 tip práctico para el viaje
 
-Máximo 150 palabras, muy conciso.`}]
-      })
+Máximo 150 palabras, muy conciso.`;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json','x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:600,messages:[{role:'user',content:prompt}]})
     });
     if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Error ${res.status}`);}
     const data=await res.json();
-    const txt=data.content[0].text;
-    const htmlTxt=esc(txt).replace(/\n/g,'<br>').replace(/•/g,'<span style="color:var(--blue);font-weight:700">•</span>');
+    const htmlTxt=esc(data.content[0].text).replace(/\n/g,'<br>').replace(/•/g,'<span style="color:var(--blue);font-weight:700">•</span>');
     document.getElementById('mcon').innerHTML=`
-      <div class="stitle">🤖 Consejos para tu viaje</div>
+      <div class="stitle">🤖 Consejos para tu ${label}</div>
       <div style="background:var(--bg);border-radius:var(--r);padding:14px;margin-bottom:14px;font-size:14px;line-height:1.7;color:var(--t2)">${htmlTxt}</div>
       <div class="sbtns">
         <button class="sbtn s" onclick="cerrarModal()">Cerrar</button>
-        <button class="sbtn p" onclick="cerrarModal();guardarViajeEnAgenda()">📅 Guardar viaje</button>
+        <button class="sbtn p" onclick="cerrarModal();guardarViajeEnAgenda()">📅 Guardar ${label}</button>
       </div>`;
   }catch(err){
     document.getElementById('mcon').innerHTML=`
@@ -1014,15 +1120,18 @@ Máximo 150 palabras, muy conciso.`}]
 function guardarViajeEnAgenda(){
   if(!tripData)return;
   const d=tripData;
+  const esCrucero=d.tipo==='crucero';
   items.push({
     id:nextId++,
-    titulo:`✈️ ${d.origen} → ${d.destino}`,
-    detalle:`${d.fechaVuelta?'Ida y vuelta':'Solo ida'} · ${d.pax} pasajero${Number(d.pax)>1?'s':''} · ${d.clase}`,
+    titulo:esCrucero?`🚢 Crucero por ${d.destino}${d.puerto?' desde '+d.puerto:''}`:`✈️ ${d.origen} → ${d.destino}`,
+    detalle:esCrucero
+      ?`${d.noches?d.noches+' noches · ':''}${d.pax} persona${Number(d.pax)>1?'s':''} · Cabina ${d.cabina}`
+      :`${d.fechaVuelta?'Ida y vuelta':'Solo ida'} · ${d.pax} pasajero${Number(d.pax)>1?'s':''} · ${d.clase}`,
     area:'eventos',prio:'alta',
-    fecha:d.fechaIda,hora:'',recur:'',dia:null,quien:'',estado:'pendiente',
+    fecha:d.fechaIda||'',hora:'',recur:'',dia:null,quien:'',estado:'pendiente',
   });
   guardar();
-  toast('✓ Viaje guardado como evento');
+  toast(`✓ ${esCrucero?'Crucero':'Viaje'} guardado como evento`);
   setTab('hoy');
 }
 
