@@ -131,6 +131,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
 #toast{position:fixed;bottom:calc(80px + var(--safeB));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;font-size:13px;padding:8px 18px;border-radius:20px;z-index:400;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 #toast.on{opacity:1;}
 
+/* Ahorros */
+.ahorro-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.ahorro-hdr{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.ahorro-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.ahorro-nombre{font-size:17px;font-weight:700;}
+.ahorro-sub{font-size:12px;color:var(--t3);margin-top:1px;}
+.ahorro-total{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1;}
+.ahorro-total-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.dep-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.dep-item:last-child{border-bottom:none;}
+.dep-monto{font-size:15px;font-weight:700;}
+.dep-meta{font-size:12px;color:var(--t3);margin-top:2px;}
+
 /* Trip search */
 .trip-toggle{display:flex;background:var(--bg);border-radius:9px;padding:3px;margin-bottom:14px;border:1px solid var(--border);}
 .trip-toggle button{flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--t3);transition:.15s;}
@@ -160,6 +173,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
       <div class="hdr-day" id="hdrDay">Hoy</div>
       <div class="hdr-btns">
         <button class="hdr-btn" onclick="document.getElementById('imgInput').click()" title="Subir imagen">📷</button>
+        <button class="hdr-btn" onclick="setTab('ahorros')" title="Ahorros">🐷</button>
         <button class="hdr-btn" onclick="setTab('config')">⚙</button>
       </div>
       <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="procesarImagen(event)">
@@ -176,6 +190,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:va
     <div class="view" id="view-areas"><div class="vcont" id="c-areas"></div></div>
     <div class="view" id="view-prox"><div class="vcont" id="c-prox"></div></div>
     <div class="view" id="view-config"><div class="vcont" id="c-config"></div></div>
+    <div class="view" id="view-ahorros"><div class="vcont" id="c-ahorros"></div></div>
     <div class="view" id="view-search"><div class="vcont" id="c-search"></div></div>
     <div class="view" id="view-viajes"><div class="vcont" id="c-viajes"></div></div>
   </div>
@@ -299,7 +314,7 @@ function setTab(tab){
   tabAct=tab;
   document.querySelectorAll('.ntab').forEach(b=>b.classList.toggle('active',b.dataset.t===tab));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab));
-  const titles={hoy:fmtHoy(),areas:'Mis Áreas',prox:'Próximas',config:'Ajustes',search:'Búsqueda',viajes:'Buscar Viajes'};
+  const titles={hoy:fmtHoy(),areas:'Mis Áreas',prox:'Próximas',config:'Ajustes',search:'Búsqueda',viajes:'Buscar Viajes',ahorros:'Ahorros 🐷'};
   document.getElementById('hdrDay').textContent=titles[tab]||tab;
   renderTab(tab);
 }
@@ -318,6 +333,7 @@ function renderTab(tab){
   else if(tab==='config')rConfig();
   else if(tab==='search')rSearch();
   else if(tab==='viajes')rViajes();
+  else if(tab==='ahorros')rAhorros();
 }
 
 // HOY
@@ -1312,6 +1328,259 @@ function guardarViajeEnAgenda(){
   guardar();
   toast(`✓ ${esCrucero?'Crucero':esProducto?'Producto':'Viaje'} guardado`);
   setTab('hoy');
+}
+
+// ── AHORROS ───────────────────────────────────────────────────────────────────
+const AHORROS_SK='mis_ahorros_v1';
+
+function fmtDin(n){
+  const s=Math.round(n||0).toString();
+  const p=[];for(let i=s.length;i>0;i-=3)p.unshift(s.slice(Math.max(0,i-3),i));
+  return'$'+p.join('.');
+}
+
+function getAhorros(){try{return JSON.parse(localStorage.getItem(AHORROS_SK))||[];}catch{return[];}}
+function saveAhorros(d){localStorage.setItem(AHORROS_SK,JSON.stringify(d));}
+
+function initAhorros(){
+  let data=getAhorros();
+  if(!data.length){
+    data=[
+      {id:1,nombre:'Milva',edad:14,emoji:'👧',color:'#ff6b6b',descripcion:'Universidad',meta:null,historial:[]},
+      {id:2,nombre:'Milán',edad:12,emoji:'👦',color:'#007aff',descripcion:'Universidad',meta:null,historial:[]},
+    ];
+    saveAhorros(data);
+    if(!localStorage.getItem('ahorros_init_done')){
+      items.push({
+        id:nextId++,titulo:'💸 Transferencia semanal Milva',
+        detalle:'$20.000 para gastos de Milva',
+        area:'pagos',prio:'alta',fecha:hoy(),hora:'',
+        recur:'semanal',dia:null,quien:'Milva',estado:'pendiente',
+      });
+      guardar();
+      localStorage.setItem('ahorros_init_done','1');
+    }
+  }
+  return data;
+}
+
+function rAhorros(){
+  const data=initAhorros();
+  let h=`<div class="slbl">Ahorro familiar</div>`;
+  for(const a of data) h+=buildAhorroCard(a);
+  const totalGeneral=data.reduce((s,a)=>s+a.historial.reduce((ss,d)=>ss+d.monto,0),0);
+  if(totalGeneral>0){
+    h+=`<div style="background:linear-gradient(135deg,#34c759,#007aff);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;color:#fff;text-align:center">
+      <div style="font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total ahorrado entre los dos</div>
+      <div style="font-size:26px;font-weight:800">${fmtDin(totalGeneral)}</div>
+    </div>`;
+  }
+  h+=`<div class="slbl">Más opciones</div>
+  <div class="set-row" onclick="agregarMetaAhorro()"><span class="set-row-l">🎯 Agregar otra meta de ahorro</span><span class="set-row-r">›</span></div>
+  <div style="height:10px"></div>`;
+  document.getElementById('c-ahorros').innerHTML=h;
+}
+
+function buildAhorroCard(a){
+  const total=a.historial.reduce((s,d)=>s+d.monto,0);
+  const ultDep=a.historial.length?a.historial[a.historial.length-1]:null;
+  const ultStr=ultDep?`${fmtDin(ultDep.monto)} · ${fmtF(ultDep.fecha)}`:'Sin aportes aún';
+
+  let progHtml='';
+  if(a.meta){
+    const pct=Math.min(100,Math.round((total/a.meta)*100));
+    const falta=Math.max(0,a.meta-total);
+    progHtml=`<div style="margin:10px 0 6px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t3);margin-bottom:5px">
+        <span>${pct}% completado</span><span>Falta ${fmtDin(falta)}</span>
+      </div>
+      <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden">
+        <div style="background:${a.color};height:100%;width:${pct}%;border-radius:4px;transition:.3s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px;text-align:right">Meta: ${fmtDin(a.meta)}</div>
+    </div>`;
+  } else {
+    progHtml=`<div style="font-size:12px;color:var(--t3);margin:8px 0 4px">Sin meta fija — <span style="color:var(--blue);cursor:pointer;font-weight:600" onclick="editarMeta(${a.id})">Agregar meta</span></div>`;
+  }
+
+  return`<div class="ahorro-card">
+    <div class="ahorro-hdr">
+      <div class="ahorro-avatar" style="background:${a.color}22;color:${a.color}">${a.emoji}</div>
+      <div class="ahorro-info">
+        <div class="ahorro-nombre">${esc(a.nombre)} <span style="font-size:13px;font-weight:400;color:var(--t3)">${a.edad?a.edad+' años':''}</span></div>
+        <div class="ahorro-sub">${esc(a.descripcion)}</div>
+      </div>
+      <button class="ib" style="color:var(--t3)" onclick="editarAhorro(${a.id})">✎</button>
+    </div>
+    <div class="ahorro-total-lbl">Total ahorrado</div>
+    <div class="ahorro-total" style="color:${a.color}">${fmtDin(total)}</div>
+    ${progHtml}
+    <div style="font-size:12px;color:var(--t3);margin:8px 0 12px">Último aporte: ${ultStr}</div>
+    <div style="display:flex;gap:8px">
+      <button class="sbtn p" style="flex:2;padding:11px;font-size:14px;background:${a.color}" onclick="mostrarFormDeposito(${a.id})">💰 Agregar aporte</button>
+      ${a.historial.length?`<button class="sbtn s" style="flex:1;padding:11px;font-size:14px" onclick="mostrarHistorial(${a.id})">📋 Historial</button>`:''}
+    </div>
+  </div>`;
+}
+
+function mostrarFormDeposito(id){
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">💰 Aporte para ${esc(a.nombre)}</div>
+    <div class="sfield"><label>Monto</label>
+      <input type="number" id="depMonto" placeholder="Ej: 50000" inputmode="numeric" min="1">
+    </div>
+    <div class="frow">
+      <div class="sfield"><label>Fecha</label>
+        <input type="date" id="depFecha" value="${hoy()}">
+      </div>
+      <div class="sfield"><label>Nota (opcional)</label>
+        <input id="depNota" placeholder="Bono, sueldo…">
+      </div>
+    </div>
+    <div class="sbtns">
+      <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
+      <button class="sbtn p" style="background:${a.color}" onclick="guardarDeposito(${id})">Guardar</button>
+    </div>`;
+  showSheet();
+  setTimeout(()=>document.getElementById('depMonto')?.focus(),250);
+}
+
+function guardarDeposito(id){
+  const monto=parseFloat(document.getElementById('depMonto')?.value);
+  if(!monto||monto<=0){toast('⚠️ Ingresá un monto válido');return;}
+  const fecha=document.getElementById('depFecha')?.value||hoy();
+  const nota=document.getElementById('depNota')?.value.trim()||'';
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  a.historial.push({fecha,monto,nota});
+  a.historial.sort((x,y)=>x.fecha.localeCompare(y.fecha));
+  saveAhorros(data);cerrarModal();rAhorros();
+  toast(`✓ ${fmtDin(monto)} agregado al ahorro de ${a.nombre}`);
+}
+
+function mostrarHistorial(id){
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  const total=a.historial.reduce((s,d)=>s+d.monto,0);
+  let rows='';
+  for(const d of [...a.historial].reverse()){
+    rows+=`<div class="dep-item">
+      <div>
+        <div class="dep-monto" style="color:${a.color}">${fmtDin(d.monto)}</div>
+        <div class="dep-meta">${fmtF(d.fecha)}${d.nota?' · '+esc(d.nota):''}</div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">📋 Historial de ${esc(a.nombre)}</div>
+    <div style="text-align:center;margin-bottom:16px;padding:14px;background:var(--bg);border-radius:var(--r)">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Total acumulado</div>
+      <div style="font-size:30px;font-weight:800;color:${a.color}">${fmtDin(total)}</div>
+      <div style="font-size:12px;color:var(--t3);margin-top:4px">${a.historial.length} aporte${a.historial.length!==1?'s':''}</div>
+    </div>
+    ${rows||'<div class="empty">Sin aportes aún.</div>'}
+    <div class="sbtns" style="margin-top:14px">
+      <button class="sbtn s" onclick="cerrarModal()">Cerrar</button>
+      <button class="sbtn p" style="background:${a.color}" onclick="cerrarModal();mostrarFormDeposito(${id})">+ Aporte</button>
+    </div>`;
+  showSheet();
+}
+
+function editarMeta(id){
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">🎯 Meta para ${esc(a.nombre)}</div>
+    <p style="color:var(--t3);font-size:13px;margin-bottom:14px">¿Cuánto querés ahorrar en total para la universidad?</p>
+    <div class="sfield"><label>Meta de ahorro</label>
+      <input type="number" id="metaMonto" placeholder="Ej: 5000000" inputmode="numeric" value="${a.meta||''}">
+    </div>
+    <div class="sbtns">
+      ${a.meta?`<button class="sbtn s" style="color:var(--red);border-color:var(--red)" onclick="quitarMeta(${id})">Quitar meta</button>`:`<button class="sbtn s" onclick="cerrarModal()">Cancelar</button>`}
+      <button class="sbtn p" style="background:${a.color}" onclick="guardarMeta(${id})">Guardar</button>
+    </div>`;
+  showSheet();
+  setTimeout(()=>document.getElementById('metaMonto')?.focus(),250);
+}
+
+function guardarMeta(id){
+  const meta=parseFloat(document.getElementById('metaMonto')?.value);
+  if(!meta||meta<=0){toast('⚠️ Ingresá una meta válida');return;}
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  a.meta=meta;saveAhorros(data);cerrarModal();rAhorros();
+  toast(`✓ Meta de ${fmtDin(meta)} guardada para ${a.nombre}`);
+}
+
+function quitarMeta(id){
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  a.meta=null;saveAhorros(data);cerrarModal();rAhorros();
+  toast('Meta eliminada');
+}
+
+function editarAhorro(id){
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">✎ Editar ${esc(a.nombre)}</div>
+    <div class="sfield"><label>Nombre</label>
+      <input id="eaNombre" value="${esc(a.nombre)}">
+    </div>
+    <div class="frow">
+      <div class="sfield"><label>Edad</label>
+        <input type="number" id="eaEdad" value="${a.edad||''}" placeholder="Años">
+      </div>
+      <div class="sfield"><label>Descripción</label>
+        <input id="eaDesc" value="${esc(a.descripcion)}">
+      </div>
+    </div>
+    <div class="sbtns">
+      <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
+      <button class="sbtn p" style="background:${a.color}" onclick="guardarEdicionAhorro(${id})">Guardar</button>
+    </div>`;
+  showSheet();
+}
+
+function guardarEdicionAhorro(id){
+  const nombre=document.getElementById('eaNombre')?.value.trim();
+  if(!nombre){toast('⚠️ Nombre requerido');return;}
+  const data=getAhorros(), a=data.find(x=>x.id===id);if(!a)return;
+  a.nombre=nombre;
+  a.edad=parseInt(document.getElementById('eaEdad')?.value)||null;
+  a.descripcion=document.getElementById('eaDesc')?.value.trim()||a.descripcion;
+  saveAhorros(data);cerrarModal();rAhorros();
+  toast('✓ Actualizado');
+}
+
+function agregarMetaAhorro(){
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">🎯 Nueva meta de ahorro</div>
+    <div class="sfield"><label>Nombre</label>
+      <input id="nuevoNombre" placeholder="Ej: Vacaciones, auto…">
+    </div>
+    <div class="frow">
+      <div class="sfield"><label>Descripción</label>
+        <input id="nuevoDesc" placeholder="Ej: Europa 2027">
+      </div>
+      <div class="sfield"><label>Meta (opcional)</label>
+        <input type="number" id="nuevoMeta" placeholder="Monto" inputmode="numeric">
+      </div>
+    </div>
+    <div class="sbtns">
+      <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
+      <button class="sbtn p" onclick="crearNuevoAhorro()">Crear</button>
+    </div>`;
+  showSheet();
+  setTimeout(()=>document.getElementById('nuevoNombre')?.focus(),250);
+}
+
+function crearNuevoAhorro(){
+  const nombre=document.getElementById('nuevoNombre')?.value.trim();
+  if(!nombre){toast('⚠️ Ingresá un nombre');return;}
+  const desc=document.getElementById('nuevoDesc')?.value.trim()||'Ahorro';
+  const meta=parseFloat(document.getElementById('nuevoMeta')?.value)||null;
+  const colores=['#ff9f43','#ee5a24','#6c5ce7','#00b894','#fd79a8'];
+  const data=getAhorros();
+  const newId=data.reduce((m,a)=>Math.max(m,a.id),0)+1;
+  data.push({id:newId,nombre,edad:null,emoji:'🎯',color:colores[newId%colores.length],descripcion:desc,meta,historial:[]});
+  saveAhorros(data);cerrarModal();rAhorros();
+  toast(`✓ Meta "${nombre}" creada`);
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
