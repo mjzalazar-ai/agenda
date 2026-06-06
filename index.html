@@ -461,6 +461,8 @@ function rConfig(){
   <div class="set-row" onclick="exportar()"><span class="set-row-l">⬇️ Exportar JSON</span><span class="set-row-r">›</span></div>
   <div class="set-row" onclick="document.getElementById('fInput').click()"><span class="set-row-l">⬆️ Importar JSON</span><span class="set-row-r">›</span></div>
   <input type="file" id="fInput" accept=".json" style="display:none" onchange="importar(event)">
+  <div class="slbl">Mis tarjetas de crédito</div>
+  <div class="set-row" onclick="editarTarjetas()"><span class="set-row-l">💳 Tarjetas guardadas</span><span class="set-row-r">${getTarjetas().length?getTarjetas().length+' configurada'+(getTarjetas().length!==1?'s':''):'Sin configurar'} ›</span></div>
   <div class="slbl">Extracción desde imagen (IA)</div>
   <div class="set-row" onclick="document.getElementById('imgInput').click()"><span class="set-row-l">📷 Subir imagen</span><span class="set-row-r">Extraer eventos</span></div>
   <div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Anthropic API Key</span><span class="set-row-r">${localStorage.getItem('anthropic_key')?'✓ Configurada':'Sin configurar'}</span></div>
@@ -829,20 +831,53 @@ function borrarApiKey(){
 // ── VIAJES ────────────────────────────────────────────────────────────────────
 let tripData=null, idaVuelta=true, tipoViaje='vuelo';
 
+const TARJETAS_SK='mis_tarjetas_v1';
+const TARJETAS_OPTS=[
+  'Galicia Visa','Galicia Mastercard','Santander Visa','Santander Mastercard',
+  'BBVA Visa','BBVA Mastercard','Macro Visa','Macro Mastercard','HSBC Visa',
+  'Banco Nación','Banco Provincia / Cuenta DNI','Banco Ciudad','ICBC',
+  'Naranja X','Ualá','Brubank','Mercado Pago','MODO','Personal Pay',
+];
+const TARJETA_PROMO_URL={
+  'Galicia Visa':'https://www.bancogalicia.com/personas/beneficios',
+  'Galicia Mastercard':'https://www.bancogalicia.com/personas/beneficios',
+  'Santander Visa':'https://www.santander.com.ar/banco/online/beneficios',
+  'Santander Mastercard':'https://www.santander.com.ar/banco/online/beneficios',
+  'BBVA Visa':'https://www.bbva.com.ar/personas/beneficios.html',
+  'BBVA Mastercard':'https://www.bbva.com.ar/personas/beneficios.html',
+  'Macro Visa':'https://www.macro.com.ar/personas/beneficios',
+  'Macro Mastercard':'https://www.macro.com.ar/personas/beneficios',
+  'HSBC Visa':'https://www.hsbc.com.ar/1/2/ar/para-personas/beneficios',
+  'Banco Nación':'https://www.bna.com.ar/Personas/DescuentosYPromos',
+  'Banco Provincia / Cuenta DNI':'https://www.bancoprovincia.com.ar/beneficios',
+  'Banco Ciudad':'https://www.bancociudad.com.ar/personas/beneficios',
+  'ICBC':'https://www.icbc.com.ar/ICBC/personas/beneficios',
+  'Naranja X':'https://www.naranjax.com/beneficios',
+  'Ualá':'https://www.uala.com.ar/',
+  'Brubank':'https://www.brubank.com.ar/',
+  'Mercado Pago':'https://www.mercadopago.com.ar/cuotas',
+  'MODO':'https://modo.com.ar/beneficios',
+  'Personal Pay':'https://www.personalpay.com.ar/',
+};
+
+function getTarjetas(){try{return JSON.parse(localStorage.getItem(TARJETAS_SK))||[];}catch{return[];}}
+function guardarTarjetas(t){localStorage.setItem(TARJETAS_SK,JSON.stringify(t));}
+
 function rViajes(){
   document.getElementById('c-viajes').innerHTML=buildViajesForm();
 }
 
 function buildViajesForm(){
-  const esCrucero=tipoViaje==='crucero';
-  const resActual=tripData?(esCrucero?buildResultadosCrucero(tripData):buildResultados(tripData)):'';
+  const esCrucero=tipoViaje==='crucero', esProducto=tipoViaje==='producto';
+  const resActual=tripData?(esCrucero?buildResultadosCrucero(tripData):esProducto?buildResultadosProducto(tripData):buildResultados(tripData)):'';
   return`
     <div class="slbl">¿Qué buscás?</div>
     <div class="trip-toggle" style="margin-bottom:16px">
-      <button id="btnVuelo" class="${!esCrucero?'active':''}" onclick="setTipoViaje('vuelo')">✈️ Vuelo</button>
+      <button id="btnVuelo" class="${!esCrucero&&!esProducto?'active':''}" onclick="setTipoViaje('vuelo')">✈️ Vuelo</button>
       <button id="btnCrucero" class="${esCrucero?'active':''}" onclick="setTipoViaje('crucero')">🚢 Crucero</button>
+      <button id="btnProducto" class="${esProducto?'active':''}" onclick="setTipoViaje('producto')">🛍️ Producto</button>
     </div>
-    ${esCrucero?buildCruceroForm():buildVueloForm()}
+    ${esCrucero?buildCruceroForm():esProducto?buildProductoForm():buildVueloForm()}
     <div id="viajesResultados" style="margin-top:14px">${resActual}</div>`;
 }
 
@@ -941,6 +976,135 @@ function buildCruceroForm(){
     <button class="sbtn p" style="width:100%;border-radius:12px;background:linear-gradient(135deg,#0055A4,#00A698)" onclick="buscarCruceros()">🚢 Comparar cruceros</button>`;
 }
 
+function buildProductoForm(){
+  const CATS=[
+    {id:'farmacia',label:'💊 Farmacia y Belleza'},
+    {id:'super',label:'🛒 Supermercado'},
+    {id:'electronica',label:'📱 Electrónica'},
+    {id:'hogar',label:'🏠 Hogar y Construcción'},
+    {id:'ropa',label:'👕 Ropa'},
+    {id:'general',label:'🔍 General'},
+  ];
+  const tarjetas=getTarjetas();
+  return`
+    <div class="viajes-form">
+      <div class="sfield"><label>Producto</label>
+        <input id="pNombre" placeholder="Ej: Crema hidratante Dermaglos, iPhone 15…" value="${esc(tripData?.nombre||'')}">
+      </div>
+      <div class="sfield"><label>Categoría</label>
+        <select id="pCat">
+          ${CATS.map(c=>`<option value="${c.id}"${(tripData?.cat||'farmacia')===c.id?' selected':''}>${c.label}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    ${!tarjetas.length?`<div style="background:var(--bg);border:1px dashed var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--t3)">
+      💳 Agregá tus tarjetas para ver promociones →
+      <span style="color:var(--blue);cursor:pointer;font-weight:600" onclick="editarTarjetas()">Configurar</span>
+    </div>`:''}
+    <button class="sbtn p" style="width:100%;border-radius:12px;background:linear-gradient(135deg,#34c759,#007aff)" onclick="buscarProducto()">🛍️ Comparar precios</button>`;
+}
+
+function buscarProducto(){
+  const nombre=document.getElementById('pNombre')?.value.trim();
+  const cat=document.getElementById('pCat')?.value||'general';
+  if(!nombre){toast('⚠️ Ingresá el nombre del producto');return;}
+  tripData={tipo:'producto',nombre,cat};
+  const res=document.getElementById('viajesResultados');
+  res.innerHTML=buildResultadosProducto(tripData);
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildResultadosProducto(d){
+  const nEnc=encodeURIComponent(d.nombre);
+  const CAT_TIENDAS={
+    farmacia:[
+      {icon:'💊',name:'Farmacity',desc:'La farmacia más grande de Argentina',url:`https://www.farmacity.com/catalogsearch/result/?q=${nEnc}`,color:'#00856F'},
+      {icon:'🛒',name:'Mercado Libre',desc:'El marketplace más grande de LATAM',url:`https://www.mercadolibre.com.ar/jm/search?as_word=${nEnc}`,color:'#3483FA'},
+      {icon:'💊',name:'Doctor Ahorro',desc:'Farmacia online con precios competitivos',url:`https://www.doctorahorro.com.ar/search?q=${nEnc}`,color:'#1A73E8'},
+      {icon:'🚀',name:'PedidosYa Farmacias',desc:'Entrega rápida a domicilio',url:'https://www.pedidosya.com.ar/farmacias',color:'#FA0050'},
+      {icon:'🏍',name:'Rappi Farmacias',desc:'Entrega en minutos',url:'https://www.rappi.com.ar/',color:'#FF441F'},
+    ],
+    super:[
+      {icon:'🛒',name:'Mercado Libre',desc:'El marketplace más grande de LATAM',url:`https://www.mercadolibre.com.ar/jm/search?as_word=${nEnc}`,color:'#3483FA'},
+      {icon:'🏪',name:'Carrefour',desc:'Gran variedad de productos',url:`https://www.carrefour.com.ar/search/?Ntt=${nEnc}`,color:'#003399'},
+      {icon:'🏬',name:'Jumbo',desc:'Supermercado premium online',url:`https://www.jumbo.com.ar/busca?ft=${nEnc}`,color:'#E10013'},
+      {icon:'💲',name:'DIA Online',desc:'Precios bajos todos los días',url:`https://diaonline.supermercadosdia.com.ar/search?q=${nEnc}`,color:'#CC0000'},
+      {icon:'🏪',name:'Changomas',desc:'Walmart Argentina',url:`https://www.walmart.com.ar/busca?ft=${nEnc}`,color:'#0071CE'},
+    ],
+    electronica:[
+      {icon:'🛒',name:'Mercado Libre',desc:'El marketplace más grande de LATAM',url:`https://www.mercadolibre.com.ar/jm/search?as_word=${nEnc}`,color:'#3483FA'},
+      {icon:'📺',name:'Frávega',desc:'Electrónica con cuotas sin interés',url:`https://www.fravega.com/l/?keyword=${nEnc}`,color:'#E30613'},
+      {icon:'📦',name:'Garbarino',desc:'Electrónica y electrodomésticos',url:`https://www.garbarino.com/search?q=${nEnc}`,color:'#FF6600'},
+      {icon:'🎼',name:'Musimundo',desc:'Tecnología y entretenimiento',url:`https://www.musimundo.com/search/#w=${nEnc}`,color:'#6600CC'},
+    ],
+    hogar:[
+      {icon:'🛒',name:'Mercado Libre',desc:'El marketplace más grande de LATAM',url:`https://www.mercadolibre.com.ar/jm/search?as_word=${nEnc}`,color:'#3483FA'},
+      {icon:'🔨',name:'Easy',desc:'Hogar, jardín y construcción',url:`https://www.easy.com.ar/search?q=${nEnc}`,color:'#E11B22'},
+      {icon:'🪚',name:'Sodimac',desc:'Construcción y decoración',url:`https://www.sodimac.com.ar/sodimac-ar/search?Ntt=${nEnc}`,color:'#EB6617'},
+    ],
+    ropa:[
+      {icon:'🛒',name:'Mercado Libre',desc:'El marketplace más grande de LATAM',url:`https://www.mercadolibre.com.ar/jm/search?as_word=${nEnc}`,color:'#3483FA'},
+      {icon:'🏬',name:'Falabella',desc:'Moda y estilo',url:`https://www.falabella.com.ar/falabella-ar/search?Ntt=${nEnc}`,color:'#82BD00'},
+      {icon:'🌎',name:'Tienda MIA',desc:'Importados de EE.UU.',url:`https://www.tiendamia.com/ar/search/q/${nEnc}`,color:'#0A84FF'},
+    ],
+    general:[
+      {icon:'🛒',name:'Mercado Libre',desc:'El marketplace más grande de LATAM',url:`https://www.mercadolibre.com.ar/jm/search?as_word=${nEnc}`,color:'#3483FA'},
+      {icon:'🌐',name:'Google Shopping',desc:'Compará precios en Google',url:`https://www.google.com.ar/search?q=${nEnc}&tbm=shop`,color:'#4285F4'},
+      {icon:'📺',name:'Frávega',desc:'Electrónica y más',url:`https://www.fravega.com/l/?keyword=${nEnc}`,color:'#E30613'},
+    ],
+  };
+
+  const tiendas=CAT_TIENDAS[d.cat]||CAT_TIENDAS.general;
+  const tarjetas=getTarjetas();
+
+  let tarjetasHtml='';
+  if(tarjetas.length){
+    tarjetasHtml=`<div class="slbl">💳 Tus tarjetas — ver promociones</div>`;
+    for(const t of tarjetas){
+      const url=TARJETA_PROMO_URL[t]||'https://www.google.com.ar/search?q='+encodeURIComponent(t+' promociones descuentos');
+      tarjetasHtml+=`<div class="site-card">
+        <div class="site-card-l">
+          <div class="site-icon">💳</div>
+          <div><div class="site-name">${esc(t)}</div><div class="site-desc">Ver descuentos y cuotas sin interés</div></div>
+        </div>
+        <button class="site-btn" style="background:#5856d6" onclick="window.open(${JSON.stringify(url)},'_blank')">Promos →</button>
+      </div>`;
+    }
+    tarjetasHtml+=`<div class="set-row" onclick="editarTarjetas()"><span class="set-row-l">⚙️ Editar tarjetas</span><span class="set-row-r">›</span></div>`;
+  } else {
+    tarjetasHtml=`<div class="set-row" onclick="editarTarjetas()"><span class="set-row-l">💳 Agregar mis tarjetas</span><span class="set-row-r">Para ver promos ›</span></div>`;
+  }
+
+  return buildSiteCards('🛍️',d.nombre,'Comparando precios en Argentina','',tiendas,tarjetasHtml);
+}
+
+function editarTarjetas(){
+  const saved=getTarjetas();
+  const rows=TARJETAS_OPTS.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" id="tc${i}" ${saved.includes(t)?'checked':''} style="width:18px;height:18px;cursor:pointer;flex-shrink:0">
+      <label for="tc${i}" style="flex:1;font-size:14px;cursor:pointer">${esc(t)}</label>
+    </div>`).join('');
+  document.getElementById('mcon').innerHTML=`
+    <div class="stitle">💳 Mis tarjetas</div>
+    <p style="color:var(--t3);font-size:13px;margin-bottom:12px">Seleccioná las tarjetas que usás para ver sus promociones al buscar un producto.</p>
+    ${rows}
+    <div class="sbtns" style="margin-top:14px">
+      <button class="sbtn s" onclick="cerrarModal()">Cancelar</button>
+      <button class="sbtn p" onclick="guardarTarjetasDesdeForm(${TARJETAS_OPTS.length})">Guardar</button>
+    </div>`;
+  showSheet();
+}
+
+function guardarTarjetasDesdeForm(n){
+  const sel=[];
+  for(let i=0;i<n;i++){if(document.getElementById(`tc${i}`)?.checked)sel.push(TARJETAS_OPTS[i]);}
+  guardarTarjetas(sel);
+  cerrarModal();
+  if(tabAct==='viajes')rViajes();else rConfig();
+  toast(`✓ ${sel.length} tarjeta${sel.length!==1?'s':''} guardada${sel.length!==1?'s':''}`);
+}
+
 function setTripType(rt){
   idaVuelta=rt;
   document.getElementById('btnIV')?.classList.toggle('active',rt);
@@ -1031,10 +1195,10 @@ function buildResultadosCrucero(d){
   return buildSiteCards('🚢',resumen,fechaStr,detalle,sites);
 }
 
-function buildSiteCards(emoji,resumen,fechaStr,detalle,sites){
+function buildSiteCards(emoji,resumen,fechaStr,detalle,sites,extraHtml=''){
   let h=`<div class="trip-summary">
     <div style="font-size:17px;font-weight:700;margin-bottom:4px">${emoji} ${esc(resumen)}</div>
-    <div style="font-size:13px;opacity:.85">📅 ${fechaStr} · ${esc(detalle)}</div>
+    <div style="font-size:13px;opacity:.85">${fechaStr?'📅 '+fechaStr+' · ':''}${esc(detalle)}</div>
   </div>
   <div class="slbl">Comparar precios en</div>`;
   for(const s of sites){
@@ -1046,10 +1210,11 @@ function buildSiteCards(emoji,resumen,fechaStr,detalle,sites){
       <button class="site-btn" style="background:${s.color}" onclick="window.open(${JSON.stringify(s.url)},'_blank')">Ver →</button>
     </div>`;
   }
+  if(extraHtml) h+=extraHtml;
   const hasKey=!!localStorage.getItem('anthropic_key');
   h+=`<div class="slbl">Más opciones</div>`;
   if(hasKey) h+=`<div class="set-row" onclick="analizarViaje()"><span class="set-row-l">🤖 Analizar con IA</span><span class="set-row-r">Consejos y tips ›</span></div>`;
-  h+=`<div class="set-row" onclick="guardarViajeEnAgenda()"><span class="set-row-l">📅 Guardar en agenda</span><span class="set-row-r">Como evento ›</span></div>`;
+  h+=`<div class="set-row" onclick="guardarViajeEnAgenda()"><span class="set-row-l">📅 Guardar en agenda</span><span class="set-row-r">${tipoViaje==='producto'?'Como tarea':'Como evento'} ›</span></div>`;
   if(!hasKey) h+=`<div class="set-row" onclick="editarApiKey()"><span class="set-row-l">🔑 Análisis con IA</span><span class="set-row-r">Configurar key ›</span></div>`;
   h+=`<div style="height:10px"></div>`;
   return h;
@@ -1058,9 +1223,9 @@ function buildSiteCards(emoji,resumen,fechaStr,detalle,sites){
 async function analizarViaje(){
   const key=localStorage.getItem('anthropic_key');
   if(!key||!tripData)return;
-  const esCrucero=tripData.tipo==='crucero';
-  const emoji=esCrucero?'🚢':'✈️';
-  const label=esCrucero?'crucero':'viaje';
+  const esCrucero=tripData.tipo==='crucero', esProducto=tripData.tipo==='producto';
+  const emoji=esCrucero?'🚢':esProducto?'🛍️':'✈️';
+  const label=esCrucero?'crucero':esProducto?'producto':'viaje';
   document.getElementById('mcon').innerHTML=`
     <div style="text-align:center;padding:32px 16px">
       <div style="font-size:44px;margin-bottom:12px">${emoji}</div>
@@ -1070,6 +1235,8 @@ async function analizarViaje(){
   showSheet();
   try{
     const d=tripData;
+    const esProducto=d.tipo==='producto';
+    const tarjetas=getTarjetas();
     const prompt=esCrucero
       ?`Crucero por ${d.destino}${d.puerto?' saliendo desde '+d.puerto:''}.${d.fechaIda?' Fecha: '+d.fechaIda+'.':''} ${d.noches?'Duración: '+d.noches+' noches.':''} ${d.pax} persona(s), cabina ${d.cabina}.
 
@@ -1081,6 +1248,16 @@ Dame consejos breves en español usando viñetas •:
 • 1 tip práctico para disfrutar el crucero
 
 Máximo 160 palabras, muy conciso.`
+      :esProducto
+      ?`Quiero comprar en Argentina: ${d.nombre} (categoría: ${d.cat}).${tarjetas.length?' Mis tarjetas: '+tarjetas.join(', ')+'.':''}
+
+Dame consejos breves en español usando viñetas •:
+• ¿Dónde suele ser más barato? (Farmacity vs Mercado Libre, etc.)
+• ¿Qué banco o tarjeta suele tener descuentos en estas tiendas?
+• ¿Hay días con mejores promos? (ej: jueves de Visa, días del banco, etc.)
+• 1 tip para maximizar el descuento
+
+Máximo 150 palabras, muy conciso.`
       :`Vuelo de ${d.origen} a ${d.destino}. Ida: ${d.fechaIda}${d.fechaVuelta?', vuelta: '+d.fechaVuelta:' (solo ida)'}. ${d.pax} pasajero(s), clase ${d.clase}.
 
 Dame consejos breves en español usando viñetas •:
@@ -1120,18 +1297,20 @@ Máximo 150 palabras, muy conciso.`;
 function guardarViajeEnAgenda(){
   if(!tripData)return;
   const d=tripData;
-  const esCrucero=d.tipo==='crucero';
+  const esCrucero=d.tipo==='crucero', esProducto=d.tipo==='producto';
   items.push({
     id:nextId++,
-    titulo:esCrucero?`🚢 Crucero por ${d.destino}${d.puerto?' desde '+d.puerto:''}`:`✈️ ${d.origen} → ${d.destino}`,
+    titulo:esCrucero?`🚢 Crucero por ${d.destino}${d.puerto?' desde '+d.puerto:''}`:esProducto?`🛍️ Comprar: ${d.nombre}`:`✈️ ${d.origen} → ${d.destino}`,
     detalle:esCrucero
       ?`${d.noches?d.noches+' noches · ':''}${d.pax} persona${Number(d.pax)>1?'s':''} · Cabina ${d.cabina}`
+      :esProducto?`Categoría: ${d.cat}`
       :`${d.fechaVuelta?'Ida y vuelta':'Solo ida'} · ${d.pax} pasajero${Number(d.pax)>1?'s':''} · ${d.clase}`,
-    area:'eventos',prio:'alta',
+    area:esProducto?'compras':'eventos',
+    prio:'alta',
     fecha:d.fechaIda||'',hora:'',recur:'',dia:null,quien:'',estado:'pendiente',
   });
   guardar();
-  toast(`✓ ${esCrucero?'Crucero':'Viaje'} guardado como evento`);
+  toast(`✓ ${esCrucero?'Crucero':esProducto?'Producto':'Viaje'} guardado`);
   setTab('hoy');
 }
 
