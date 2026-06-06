@@ -192,10 +192,10 @@ function fmtF(f) {
   var d = new Date(f + 'T12:00:00');
   var ds = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   var parts = f.split('-');
-  var m = parts[1], dd = parts[2];
+  var y = parts[0], m = parts[1], dd = parts[2];
   var diff = Math.round((d - new Date()) / 86400000);
   if (diff > -8 && diff < 15) return ds[d.getDay()] + ' ' + dd + '/' + m;
-  return dd + '/' + m + '/' + String(parts[0]).slice(2);
+  return dd + '/' + m + '/' + String(y).slice(2);
 }
 
 function isVenc(t) { return t.fecha && t.fecha < hoy() && t.estado !== 'completado'; }
@@ -208,7 +208,8 @@ function avanzar(t) {
   else if (t.recur === 'mensual') {
     f.setMonth(f.getMonth()+1);
     if (t.dia) f.setDate(Math.min(t.dia, diasEnMes(f.getFullYear(), f.getMonth())));
-  } else if (t.recur === 'anual') f.setFullYear(f.getFullYear()+1);
+  }
+  else if (t.recur === 'anual') f.setFullYear(f.getFullYear()+1);
   t.fecha = f.toISOString().slice(0,10);
   t.estado = 'pendiente';
 }
@@ -286,15 +287,19 @@ function rHoy() {
   var manS = manT.toISOString().slice(0,10);
   var man = items.filter(function(t){ return t.fecha === manS && t.estado !== 'completado'; });
   man.sort(function(a,b){ return (a.hora||'23:59') < (b.hora||'23:59') ? -1 : 1; });
+
   var h2 = '';
+
   if (venc.length) {
     h2 += '<div class="ovb" onclick="toggleVenc()">';
     h2 += '<div class="ovb-t">⚠️ ' + venc.length + ' vencida' + (venc.length > 1 ? 's' : '') + '</div>';
     h2 += '<div class="ovb-s" id="vencSub">' + (vencOpen ? 'Tocá para ocultar' : 'Tocá para ver') + '</div>';
-    h2 += '</div><div id="vencList" style="display:' + (vencOpen ? 'block' : 'none') + '">';
+    h2 += '</div>';
+    h2 += '<div id="vencList" style="display:' + (vencOpen ? 'block' : 'none') + '">';
     for (var i = 0; i < venc.length; i++) h2 += tiHtml(venc[i]);
     h2 += '</div>';
   }
+
   if (!hoyT.length && !venc.length && !altas.length) {
     h2 += '<div class="empty"><div class="ei">🌟</div>¡Todo al día! No hay tareas para hoy.</div>';
   } else {
@@ -313,10 +318,12 @@ function rHoy() {
       for (var i = 0; i < altas.length; i++) h2 += tiHtml(altas[i]);
     }
   }
+
   if (man.length) {
     h2 += '<div class="slbl">Mañana (' + man.length + ')</div>';
     for (var i = 0; i < man.length; i++) h2 += tiHtml(man[i]);
   }
+
   var pendByArea = [];
   for (var i = 0; i < AREAS.length; i++) {
     var a = AREAS[i];
@@ -331,6 +338,7 @@ function rHoy() {
     }
     h2 += '</div>';
   }
+
   document.getElementById('c-hoy').innerHTML = h2 || '<div class="empty"><div class="ei">🌟</div>Todo al día.</div>';
 }
 
@@ -347,7 +355,11 @@ function rAreas() {
   for (var i = 0; i < AREAS.length; i++) {
     var a = AREAS[i];
     var n = items.filter(function(t){ return t.area === a.id && t.estado !== 'completado'; }).length;
-    h += '<div class="acard" onclick="irArea(\'' + a.id + '\')"><div class="ai">' + a.i + '</div><div class="al">' + a.l + '</div><div class="ac' + (n ? ' has' : '') + '">' + (n ? n + ' pend.' : ' ') + '</div></div>';
+    h += '<div class="acard" onclick="irArea(\'' + a.id + '\')">'
+    h += '<div class="ai">' + a.i + '</div>';
+    h += '<div class="al">' + a.l + '</div>';
+    h += '<div class="ac' + (n ? ' has' : '') + '">' + (n ? n + ' pend.' : ' ') + '</div>';
+    h += '</div>';
   }
   h += '</div>';
   document.getElementById('c-areas').innerHTML = h;
@@ -362,13 +374,18 @@ function irArea(id) {
 function rAreaDet() {
   var a = AM[areaAct]; if (!a) return;
   var pend = items.filter(function(t){ return t.area === areaAct && t.estado !== 'completado'; });
-  pend.sort(function(x,y){ if (x.fecha && y.fecha) return x.fecha < y.fecha ? -1 : 1; if (x.fecha) return -1; if (y.fecha) return 1; return 0; });
+  pend.sort(function(x,y){
+    if (x.fecha && y.fecha) return x.fecha < y.fecha ? -1 : 1;
+    if (x.fecha) return -1; if (y.fecha) return 1; return 0;
+  });
   var done = items.filter(function(t){ return t.area === areaAct && t.estado === 'completado'; });
   var h = '<button class="back-btn" onclick="volverAreas()">&larr; Áreas</button>';
   h += '<div class="area-hdr"><div class="ahi">' + a.i + '</div>';
   h += '<div class="area-hdr-txt"><h2>' + a.l + '</h2><p>' + pend.length + ' pendiente' + (pend.length !== 1 ? 's' : '') + '</p></div>';
   h += '<button class="hdr-btn" onclick="abrirModalArea(\'' + areaAct + '\')">+ Agregar</button></div>';
-  if (!pend.length && !done.length) h += '<div class="empty"><div class="ei">' + a.i + '</div>No hay tareas en ' + a.l + '.</div>';
+  if (!pend.length && !done.length) {
+    h += '<div class="empty"><div class="ei">' + a.i + '</div>No hay tareas en ' + a.l + '.</div>';
+  }
   for (var i = 0; i < pend.length; i++) h += tiHtml(pend[i], false);
   if (done.length) {
     h += '<div class="slbl">Completados (' + done.length + ')</div>';
@@ -386,15 +403,19 @@ function rProx() {
     var d = new Date(); d.setDate(d.getDate()+i);
     var ds = d.toISOString().slice(0,10);
     var its = items.filter(function(t){ return t.fecha === ds && t.estado !== 'completado'; });
-    if (its.length) grupos.push({ds:ds, d:d, its:its});
+    if (its.length) grupos.push({ds:ds, its:its});
   }
-  if (!grupos.length) { document.getElementById('c-prox').innerHTML = '<div class="empty"><div class="ei">📅</div>Sin tareas en los próximos 21 días.</div>'; return; }
+  if (!grupos.length) {
+    document.getElementById('c-prox').innerHTML = '<div class="empty"><div class="ei">📅</div>Sin tareas en los próximos 21 días.</div>';
+    return;
+  }
   var dN = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   var mN = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   var h = '';
   for (var i = 0; i < grupos.length; i++) {
     var g = grupos[i];
-    h += '<div class="dgrp"><div class="dgrp-lbl">' + dN[g.d.getDay()] + ' ' + g.d.getDate() + ' ' + mN[g.d.getMonth()] + '</div>';
+    var d = new Date(g.ds + 'T12:00:00');
+    h += '<div class="dgrp"><div class="dgrp-lbl">' + dN[d.getDay()] + ' ' + d.getDate() + ' ' + mN[d.getMonth()] + '</div>';
     for (var j = 0; j < g.its.length; j++) h += tiHtml(g.its[j]);
     h += '</div>';
   }
@@ -439,7 +460,9 @@ function onSearch() {
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
     document.getElementById('hdrDay').textContent = 'Búsqueda';
     rSearch();
-  } else { setTab(tabAct === 'search' ? 'hoy' : tabAct); }
+  } else {
+    setTab(tabAct === 'search' ? 'hoy' : tabAct);
+  }
 }
 
 function clearSearch() {
@@ -459,8 +482,8 @@ function rSearch() {
       ((AM[t.area] && AM[t.area].l) || '').toLowerCase().indexOf(q) !== -1;
   });
   var h = '<div class="slbl">' + res.length + ' resultado' + (res.length !== 1 ? 's' : '') + ' para "' + esc(q) + '"</div>';
-  for (var i = 0; i < res.length; i++) h += tiHtml(res[i]);
-  if (!res.length) h += '<div class="empty">No se encontró nada.</div>';
+  if (res.length) { for (var i = 0; i < res.length; i++) h += tiHtml(res[i]); }
+  else h += '<div class="empty">No se encontró nada.</div>';
   document.getElementById('c-search').innerHTML = h;
 }
 
@@ -480,8 +503,10 @@ function pedirEliminar(id) {
   document.getElementById('mcon').innerHTML =
     '<div class="stitle">¿Eliminar tarea?</div>' +
     '<p style="color:var(--t3);font-size:14px;margin-bottom:16px">"' + esc(t.titulo) + '" se eliminará para siempre.</p>' +
-    '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cancelar</button>' +
-    '<button class="sbtn" style="background:var(--red);color:#fff" onclick="eliminar(' + id + ')">Eliminar</button></div>';
+    '<div class="sbtns">' +
+    '<button class="sbtn s" onclick="cerrarModal()">Cancelar</button>' +
+    '<button class="sbtn" style="background:var(--red);color:#fff" onclick="eliminar(' + id + ')">Eliminar</button>' +
+    '</div>';
   showSheet();
 }
 
@@ -506,7 +531,10 @@ function abrirEditar(id) {
   var t = null;
   for (var i = 0; i < items.length; i++) if (items[i].id === id) { t = items[i]; break; }
   if (!t) return;
-  var copy = {titulo:t.titulo,detalle:t.detalle,area:t.area,estado:t.estado,fecha:t.fecha,hora:t.hora,recur:t.recur||'',dia:t.dia||'',quien:t.quien,prio:t.prio};
+  var copy = {};
+  for (var k in t) copy[k] = t[k];
+  copy.dia = t.dia || '';
+  copy.recur = t.recur || '';
   mostrarForm(copy);
 }
 
@@ -518,22 +546,26 @@ function mostrarForm(f) {
   }
   var h = '<div class="stitle">' + (editId ? 'Editar' : 'Nueva tarea') + '</div>';
   h += '<div class="sfield"><label>Tarea *</label><input id="fT" value="' + esc(f.titulo) + '" placeholder="¿Qué hay que hacer?"></div>';
-  h += '<div class="frow"><div class="sfield"><label>Área</label><select id="fA">' + ao + '</select></div>';
+  h += '<div class="frow">';
+  h += '<div class="sfield"><label>Área</label><select id="fA">' + ao + '</select></div>';
   h += '<div class="sfield"><label>Prioridad</label><select id="fP">';
   h += '<option value="normal"' + (f.prio === 'normal' ? ' selected' : '') + '>Normal</option>';
   h += '<option value="alta"' + (f.prio === 'alta' ? ' selected' : '') + '>❗ Alta</option>';
   h += '<option value="baja"' + (f.prio === 'baja' ? ' selected' : '') + '>Baja</option>';
   h += '</select></div></div>';
-  h += '<div class="frow"><div class="sfield"><label>Fecha</label><input type="date" id="fF" value="' + (f.fecha||'') + '"></div>';
-  h += '<div class="sfield"><label>Hora</label><input type="time" id="fH" value="' + (f.hora||'') + '"></div></div>';
-  h += '<div class="frow"><div class="sfield"><label>Repite</label><select id="fR" onchange="onRecur()">';
+  h += '<div class="frow">';
+  h += '<div class="sfield"><label>Fecha</label><input type="date" id="fF" value="' + f.fecha + '"></div>';
+  h += '<div class="sfield"><label>Hora</label><input type="time" id="fH" value="' + (f.hora||'') + '"></div>';
+  h += '</div><div class="frow">';
+  h += '<div class="sfield"><label>Repite</label><select id="fR" onchange="onRecur()">';
   h += '<option value=""' + (!f.recur ? ' selected' : '') + '>No repite</option>';
   h += '<option value="diaria"' + (f.recur === 'diaria' ? ' selected' : '') + '>Diaria</option>';
   h += '<option value="semanal"' + (f.recur === 'semanal' ? ' selected' : '') + '>Semanal</option>';
   h += '<option value="mensual"' + (f.recur === 'mensual' ? ' selected' : '') + '>Mensual</option>';
   h += '<option value="anual"' + (f.recur === 'anual' ? ' selected' : '') + '>Anual</option>';
   h += '</select></div>';
-  h += '<div class="sfield"><label>¿Para quién?</label><input id="fQ" value="' + esc(f.quien||'') + '" placeholder="Ramiro, Milán, Yo…"></div></div>';
+  h += '<div class="sfield"><label>¿Para quién?</label><input id="fQ" value="' + esc(f.quien||'') + '" placeholder="Ramiro, Milán, Yo…"></div>';
+  h += '</div>';
   h += '<div class="sfield" id="fDW" style="display:' + (f.recur === 'mensual' ? 'block' : 'none') + '">';
   h += '<label>Día del mes</label><input type="number" id="fD" min="1" max="31" value="' + (f.dia||'') + '" placeholder="Ej: 10"></div>';
   h += '<div class="sfield"><label>Notas</label><textarea id="fN" placeholder="Detalle adicional…">' + esc(f.detalle||'') + '</textarea></div>';
@@ -560,22 +592,36 @@ function guardarForm() {
   var fT = document.getElementById('fT');
   if (!fT || !fT.value.trim()) { alert('El nombre es obligatorio.'); return; }
   var titulo = fT.value.trim();
-  var fR = document.getElementById('fR'); var recur = fR ? fR.value : '';
-  var dEl = document.getElementById('fD'); var eEl = document.getElementById('fE');
-  var fN = document.getElementById('fN'); var fA = document.getElementById('fA');
-  var fP = document.getElementById('fP'); var fF = document.getElementById('fF');
-  var fH = document.getElementById('fH'); var fQ = document.getElementById('fQ');
+  var fR = document.getElementById('fR');
+  var recur = fR ? fR.value : '';
+  var dEl = document.getElementById('fD');
+  var eEl = document.getElementById('fE');
+  var fN = document.getElementById('fN');
+  var fA = document.getElementById('fA');
+  var fP = document.getElementById('fP');
+  var fF = document.getElementById('fF');
+  var fH = document.getElementById('fH');
+  var fQ = document.getElementById('fQ');
   var obj = {
-    titulo:titulo, detalle:fN?fN.value.trim():'', area:fA?fA.value:'pendientes',
-    prio:fP?fP.value:'normal', fecha:fF?fF.value:'', hora:fH?fH.value:'',
-    recur:recur, dia:(recur==='mensual'&&dEl&&dEl.value)?parseInt(dEl.value):null,
-    quien:fQ?fQ.value.trim():'', estado:eEl?eEl.value:'pendiente'
+    titulo: titulo,
+    detalle: fN ? fN.value.trim() : '',
+    area: fA ? fA.value : 'pendientes',
+    prio: fP ? fP.value : 'normal',
+    fecha: fF ? fF.value : '',
+    hora: fH ? fH.value : '',
+    recur: recur,
+    dia: (recur === 'mensual' && dEl && dEl.value) ? parseInt(dEl.value) : null,
+    quien: fQ ? fQ.value.trim() : '',
+    estado: eEl ? eEl.value : 'pendiente'
   };
   if (editId) {
     for (var i = 0; i < items.length; i++) {
       if (items[i].id === editId) { for (var k in obj) items[i][k] = obj[k]; break; }
     }
-  } else { obj.id = nextId++; items.push(obj); }
+  } else {
+    obj.id = nextId++;
+    items.push(obj);
+  }
   guardar(); cerrarModal(); renderTab(tabAct);
   toast(editId ? '✓ Actualizado' : '✓ Guardado');
 }
@@ -585,6 +631,7 @@ function showSheet() {
   var ms = document.getElementById('msheet');
   setTimeout(function(){ ms.classList.add('on'); }, 10);
 }
+
 function cerrarModal() {
   document.getElementById('moverlay').classList.remove('on');
   document.getElementById('msheet').classList.remove('on');
@@ -609,12 +656,21 @@ function importar(e) {
       var lista = d.items || d.tareas || d;
       if (!Array.isArray(lista)) throw new Error();
       items = lista.map(function(t) {
-        return {id:t.id, titulo:t.titulo||t.nombre||'Sin título', detalle:t.detalle||t.desc||'',
-          area:t.area||'pendientes', prio:t.prio||(t.imp==='alta'?'alta':t.imp==='baja'?'baja':'normal'),
-          fecha:t.fecha||'', hora:t.hora||'', recur:t.recur||'', dia:t.dia||null,
-          quien:t.quien||t.resp||'', estado:t.estado||'pendiente'};
+        return {
+          id: t.id,
+          titulo: t.titulo || t.nombre || 'Sin título',
+          detalle: t.detalle || t.desc || '',
+          area: t.area || 'pendientes',
+          prio: t.prio || (t.imp === 'alta' ? 'alta' : t.imp === 'baja' ? 'baja' : 'normal'),
+          fecha: t.fecha || '',
+          hora: t.hora || '',
+          recur: t.recur || '',
+          dia: t.dia || null,
+          quien: t.quien || t.resp || '',
+          estado: t.estado || 'pendiente'
+        };
       });
-      nextId = items.reduce(function(m,t){ return Math.max(m,t.id||0); }, 0) + 1;
+      nextId = items.reduce(function(m,t){ return Math.max(m, t.id||0); }, 0) + 1;
       guardar(); renderTab(tabAct); toast('✓ ' + items.length + ' tareas importadas');
     } catch(err) { toast('⚠️ Archivo no válido'); }
   };
@@ -643,18 +699,43 @@ function procesarConClaude(file, apiKey) {
     '<div style="text-align:center;padding:32px 16px">' +
     '<div style="font-size:44px;margin-bottom:12px">🔍</div>' +
     '<div style="font-size:16px;font-weight:600;margin-bottom:6px">Analizando imagen…</div>' +
-    '<div style="font-size:13px;color:var(--t3)">Buscando fechas, horarios y eventos</div></div>';
+    '<div style="font-size:13px;color:var(--t3)">Buscando fechas, horarios y eventos</div>' +
+    '</div>';
   showSheet();
+
   fileToB64(file).then(function(b64) {
     var mt = file.type || 'image/jpeg';
-    var prompt = 'Hoy es ' + hoy() + '. Analizá esta imagen: puede ser un horario de clases, turno médico, agenda escolar, programa de eventos, recordatorio o cualquier calendario.\nExtraé TODOS los eventos, citas, clases, fechas de entrega o tareas que veas.\nRespondé ÚNICAMENTE con un JSON array válido, sin texto adicional, sin markdown:\n[{"titulo":"descripción corta en español","area":"una de: colegio|hogar|compras|salud|maestria|ingles|pagos|remedios|pendientes|tramites|eventos|gimnasio","fecha":"YYYY-MM-DD o null","hora":"HH:MM o null","quien":"persona si se menciona, sino vacío"}]\nSi no encontrás nada respondé: []';
+    var prompt = 'Hoy es ' + hoy() + '. Analizá esta imagen: puede ser un horario de clases, turno médico, agenda escolar, programa de eventos, recordatorio o cualquier calendario.\n' +
+      'Extraé TODOS los eventos, citas, clases, fechas de entrega o tareas que veas.\n' +
+      'Respondé ÚNICAMENTEcon un JSON array válido, sin texto adicional, sin markdown:\n' +
+      '[{"titulo":"descripción corta en español","area":"una de: colegio|hogar|compras|salud|maestria|ingles|pagos|remedios|pendientes|tramites|eventos|gimnasio","fecha":"YYYY-MM-DD o null","hora":"HH:MM o null","quien":"persona si se menciona, sino vacío"}]\n' +
+      'Si no encontrás nada respondé: []';
     return fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:prompt}]}]})
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: [
+            {type:'image', source:{type:'base64', media_type:mt, data:b64}},
+            {type:'text', text:prompt}
+          ]
+        }]
+      })
     });
   }).then(function(res) {
-    if (!res.ok) return res.json().then(function(e){ throw new Error((e.error&&e.error.message)||'Error '+res.status); });
+    if (!res.ok) {
+      return res.json().then(function(e) {
+        throw new Error((e.error && e.error.message) || 'Error ' + res.status);
+      });
+    }
     return res.json();
   }).then(function(data) {
     var txt = data.content[0].text.trim();
@@ -666,33 +747,41 @@ function procesarConClaude(file, apiKey) {
     document.getElementById('mcon').innerHTML =
       '<div class="stitle">⚠️ Error</div>' +
       '<p style="color:var(--t3);font-size:14px;margin-bottom:16px">' + esc(String(err.message)) + '</p>' +
+      '<p style="color:var(--t3);font-size:12px;margin-bottom:16px">Verificá tu API key en Ajustes o intentá con otra imagen.</p>' +
       '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>';
   });
 }
 
 function mostrarPreviewEventos(evs) {
   if (!evs.length) {
-    document.getElementById('mcon').innerHTML = '<div class="stitle">Sin resultados</div><p style="color:var(--t3);font-size:14px;margin-bottom:16px">No se encontraron eventos.</p><div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>';
+    document.getElementById('mcon').innerHTML =
+      '<div class="stitle">Sin resultados</div>' +
+      '<p style="color:var(--t3);font-size:14px;margin-bottom:16px">No se encontraron eventos en la imagen.</p>' +
+      '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cerrar</button></div>';
     return;
   }
-  var html = '<div class="stitle">📋 ' + evs.length + ' evento' + (evs.length>1?'s':'') + ' encontrado' + (evs.length>1?'s':'') + '</div>';
-  html += '<p style="color:var(--t3);font-size:12px;margin-bottom:12px">Editá y seleccioná cuáles agregar.</p>';
+  var html = '<div class="stitle">📋 ' + evs.length + ' evento' + (evs.length > 1 ? 's' : '') + ' encontrado' + (evs.length > 1 ? 's' : '') + '</div>';
+  html += '<p style="color:var(--t3);font-size:12px;margin-bottom:12px">Editá los datos y seleccióná cuáles agregar.</p>';
   for (var i = 0; i < evs.length; i++) {
     var ev = evs[i];
     var ao = '';
     for (var j = 0; j < AREAS.length; j++) {
       var a = AREAS[j];
-      ao += '<option value="' + a.id + '"' + ((ev.area||'pendientes')===a.id?' selected':'') + '>' + a.i + ' ' + a.l + '</option>';
+      ao += '<option value="' + a.id + '"' + ((ev.area||'pendientes') === a.id ? ' selected' : '') + '>' + a.i + ' ' + a.l + '</option>';
     }
     html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px;margin-bottom:10px">';
     html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
     html += '<input type="checkbox" id="ck' + i + '" checked style="width:18px;height:18px;cursor:pointer;flex-shrink:0">';
     html += '<input id="pt' + i + '" value="' + esc(ev.titulo||'') + '" style="flex:1;border:none;background:none;font-size:14px;font-weight:600;color:var(--t1);outline:none;min-width:0">';
     html += '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">';
-    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">ÁREA</div><select id="pa' + i + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card);-webkit-appearance:none">' + ao + '</select></div>';
-    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">FECHA</div><input type="date" id="pf' + i + '" value="' + (ev.fecha||'') + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
-    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">HORA</div><input type="time" id="ph' + i + '" value="' + (ev.hora||'') + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
-    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">¿PARA QUIÉN?</div><input id="pq' + i + '" value="' + esc(ev.quien||'') + '" placeholder="Opcional" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">ÁREA</div>';
+    html += '<select id="pa' + i + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card);-webkit-appearance:none">' + ao + '</select></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">FECHA</div>';
+    html += '<input type="date" id="pf' + i + '" value="' + (ev.fecha||'') + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">HORA</div>';
+    html += '<input type="time" id="ph' + i + '" value="' + (ev.hora||'') + '" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
+    html += '<div><div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:3px">¿PARAQUiÉN?</div>';
+    html += '<input id="pq' + i + '" value="' + esc(ev.quien||'') + '" placeholder="Opcional" style="width:100%;font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:7px;background:var(--card)"></div>';
     html += '</div></div>';
   }
   html += '<div class="sbtns"><button class="sbtn s" onclick="cerrarModal()">Cancelar</button><button class="sbtn p" onclick="importarEventos(' + evs.length + ')">Agregar seleccionados</button></div>';
@@ -702,27 +791,39 @@ function mostrarPreviewEventos(evs) {
 function importarEventos(n) {
   var cnt = 0;
   for (var i = 0; i < n; i++) {
-    var ck = document.getElementById('ck'+i); if (!ck||!ck.checked) continue;
-    var pt = document.getElementById('pt'+i); var titulo = pt?pt.value.trim():'';
+    var ck = document.getElementById('ck' + i);
+    if (!ck || !ck.checked) continue;
+    var pt = document.getElementById('pt' + i);
+    var titulo = pt ? pt.value.trim() : '';
     if (!titulo) continue;
-    var pa = document.getElementById('pa'+i); var pf = document.getElementById('pf'+i);
-    var ph = document.getElementById('ph'+i); var pq = document.getElementById('pq'+i);
-    items.push({id:nextId++,titulo:titulo,area:pa?pa.value:'pendientes',fecha:pf?pf.value:'',hora:ph?ph.value:'',quien:pq?pq.value.trim():'',detalle:'',prio:'normal',recur:'',dia:null,estado:'pendiente'});
+    var pa = document.getElementById('pa' + i);
+    var pf = document.getElementById('pf' + i);
+    var ph = document.getElementById('ph' + i);
+    var pq = document.getElementById('pq' + i);
+    items.push({
+      id: nextId++, titulo: titulo,
+      area: pa ? pa.value : 'pendientes',
+      fecha: pf ? pf.value : '',
+      hora: ph ? ph.value : '',
+      quien: pq ? pq.value.trim() : '',
+      detalle: '', prio: 'normal', recur: '', dia: null, estado: 'pendiente'
+    });
     cnt++;
   }
   guardar(); cerrarModal(); renderTab(tabAct);
-  toast('✓ '+cnt+' tarea'+(cnt!==1?'s':'')+' agregada'+(cnt!==1?'s':''));
+  toast('✓ ' + cnt + ' tarea' + (cnt !== 1 ? 's' : '') + ' agregada' + (cnt !== 1 ? 's' : ''));
 }
 
 function editarApiKey(afterSetup) {
   if (afterSetup === undefined) afterSetup = false;
   var saved = localStorage.getItem('anthropic_key') || '';
   var h = '<div class="stitle">🔑 Anthropic API Key</div>';
-  h += '<p style="color:var(--t3);font-size:13px;margin-bottom:14px">Necesaria para extraer eventos de imágenes con IA.<br>Conseguila en <b>console.anthropic.com</b></p>';
+  h += '<p style="color:var(--t3);font-size:13px;margin-bottom:14px">Necesaria para extraer eventos de imágenes con IA.<br>Conséguila en <b>console.anthropic.com</b></p>';
   h += '<div class="sfield"><label>API Key</label><input type="password" id="akInput" value="' + esc(saved) + '" placeholder="sk-ant-..."></div>';
   h += '<div class="sbtns">';
-  h += '<button class="sbtn s" onclick="' + (saved?'borrarApiKey()':'cerrarModal()') + '">' + (saved?'Borrar key':'Cancelar') + '</button>';
-  h += '<button class="sbtn p" onclick="guardarApiKey(' + afterSetup + ')">Guardar</button></div>';
+  h += '<button class="sbtn s" onclick="' + (saved ? 'borrarApiKey()' : 'cerrarModal()') + '">' + (saved ? 'Borrar key' : 'Cancelar') + '</button>';
+  h += '<button class="sbtn p" onclick="guardarApiKey(' + afterSetup + ')">Guardar</button>';
+  h += '</div>';
   document.getElementById('mcon').innerHTML = h;
   showSheet();
 }
@@ -734,8 +835,11 @@ function guardarApiKey(procesarDespues) {
   if (!key) { alert('Ingresá tu API key'); return; }
   localStorage.setItem('anthropic_key', key);
   cerrarModal();
-  if (procesarDespues && pendingFile) setTimeout(function(){ procesarConClaude(pendingFile, key); }, 100);
-  else { rConfig(); toast('✓ API Key guardada'); }
+  if (procesarDespues && pendingFile) {
+    setTimeout(function(){ procesarConClaude(pendingFile, key); }, 100);
+  } else {
+    rConfig(); toast('✓ API Key guardada');
+  }
 }
 
 function borrarApiKey() {
@@ -750,6 +854,7 @@ function toast(msg) {
   clearTimeout(_tt); _tt = setTimeout(function(){ el.classList.remove('on'); }, 2200);
 }
 
+// INIT
 document.getElementById('hdrDay').textContent = fmtHoy();
 rHoy();
 </script>
